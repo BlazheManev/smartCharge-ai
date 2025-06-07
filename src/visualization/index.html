@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>EV Stations – Slovenia</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+        #map {
+            flex: 1;
+        }
+        #sidebar {
+            width: 350px;
+            background: #f8f8f8;
+            padding: 1rem;
+            overflow-y: auto;
+            border-left: 1px solid #ccc;
+        }
+        .info-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .info-section {
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+<div id="map"></div>
+<div id="sidebar">
+    <div id="info">
+        <p>Click on a station icon to see details.</p>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    const map = L.map('map').setView([46.1512, 14.9955], 8);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    const evIcon = L.icon({
+        iconUrl: '/charging-station.png',
+        iconSize: [30, 30],
+        iconAnchor: [15, 30],
+        popupAnchor: [0, -30]
+    });
+
+    const files = [
+        '/data/raw/ev/ljubljana_ev_availability_combined.json'
+    ];
+
+    Promise.all(files.map(file => fetch(file).then(res => res.json())))
+        .then(jsons => {
+            const allStations = jsons.flatMap(data => data.results || data);
+
+            allStations.forEach(entry => {
+                const station = entry.station || entry; // handle both formats
+                const availability = entry.availability?.connectors || entry.availability || [];
+
+                const lat = station.position?.lat;
+                const lon = station.position?.lon;
+                if (!lat || !lon) return;
+
+                const name = station.poi?.name || "Unnamed Station";
+                const address = station.address?.freeformAddress || "No address";
+                const fetchedAt = entry.fetched_at || new Date().toISOString();
+
+                const marker = L.marker([lat, lon], { icon: evIcon }).addTo(map);
+
+                marker.on('click', () => {
+                    const container = document.getElementById('info');
+                    container.innerHTML = `
+                        <div class="info-title">${name}</div>
+                        <div class="info-section">📍 <strong>Address:</strong><br/>${address}</div>
+                        <div class="info-section">
+                            <strong>Connectors:</strong><br/>
+                            ${availability.map(c => `
+                                <div>
+                                    <b>${c.type}</b><br/>
+                                    🔌 Total: ${c.total ?? 'n/a'}<br/>
+                                    ✅ Available: ${c.availability?.current?.available ?? 0}<br/>
+                                    ⛔ Occupied: ${c.availability?.current?.occupied ?? 0}<br/>
+                                    ❓ Unknown: ${c.availability?.current?.unknown ?? 0}
+                                </div><hr/>
+                            `).join('')}
+                        </div>
+                        <div><small>Last fetched: ${new Date(fetchedAt).toLocaleString()}</small></div>
+                    `;
+                });
+            });
+        })
+        .catch(console.error);
+</script>
+
+</body>
+</html>
