@@ -1,0 +1,88 @@
+# -------------------
+# Python & Poetry
+# -------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.venv/
+env/
+venv/
+poetry.lock
+poetry.toml
+
+# -------------------
+# Jupyter & IPython
+# -------------------
+.ipynb_checkpoints/
+*.ipynb
+
+# -------------------
+# PyCharm
+# -------------------
+.idea/
+*.iml
+
+# -------------------
+# VSCode (if applicable)
+# -------------------
+.vscode/
+
+# -------------------
+# OS-specific
+# -------------------
+.DS_Store
+Thumbs.db
+
+# -------------------
+# DVC
+# -------------------
+/data/*
+!/data/.gitkeep
+!/data/**/*.gitignore
+/data/**/*.csv
+/data/**/*.json
+/data/**/*.xml
+/data/**/*.parquet
+gx/uncommitted/
+
+# -------------------
+# MLflow
+# -------------------
+mlruns/
+
+# -------------------
+# Logs / Artifacts
+# -------------------
+*.log
+*.tmp
+*.bak
+*.swp
+*.~*
+
+# -------------------
+# Model files / Binaries
+# -------------------
+models/
+*.h5
+*.onnx
+*.pt
+*.pkl
+*.joblib
+
+# -------------------
+# Env files
+# -------------------
+.env
+.env.*
+
+# -------------------
+# Other
+# -------------------
+*.zip
+*.tar
+*.gz
+*.7z
+*.rar
