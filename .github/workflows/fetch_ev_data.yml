@@ -7,11 +7,11 @@ on:
 
 jobs:
   fetch_ev:
-    name: Fetch and pre-process EV data
+    name: Fetch, process and deploy EV data
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.PAT_TOKEN }}
@@ -20,10 +20,13 @@ jobs:
       - name: Install Poetry
         run: pipx install poetry
 
+      - name: Install DVC
+        run: pip install dvc[s3]
+
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.12'
+          python-version: "3.12"
           cache: poetry
 
       - name: Setup Git
@@ -31,30 +34,30 @@ jobs:
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
 
-      - name: Setup DVC
-        uses: iterative/setup-dvc@v1
-        with:
-          version: '3.51.0'
-
       - name: Install dependencies
-        run: poetry install --no-root --no-interaction
+        run: poetry install --no-interaction --no-root
 
-      - name: DVC remote setup
+      - name: DVC setup remote
         run: |
           dvc remote modify origin --local access_key_id ${{ secrets.DAGSHUB_ACCESS_KEY_ID }}
           dvc remote modify origin --local secret_access_key ${{ secrets.DAGSHUB_SECRET_ACCESS_KEY }}
 
-      - name: Run DVC pipeline
+      - name: DVC pull & status
+        run: |
+          dvc pull --force
+          dvc status
+
+      - name: Run DVC pipeline (EV)
         env:
           TOMTOM_API_KEY: ${{ secrets.TOMTOM_API_KEY }}
         run: |
-          dvc pull
-          dvc repro
+          dvc repro --force
           dvc push
           git add dvc.lock
           git commit -m "🔌 Update EV data pipeline on $(date) via GitHub Actions" || true
+          git push || true
 
-      - name: Push changes
+      - name: Push changes to GitHub
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.PAT_TOKEN }}
