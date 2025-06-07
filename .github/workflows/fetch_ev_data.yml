@@ -1,0 +1,61 @@
+name: Fetch EV data on schedule
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 */2 * * *'
+
+jobs:
+  fetch_ev:
+    name: Fetch and pre-process EV data
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          fetch-depth: 0
+
+      - name: Install Poetry
+        run: pipx install poetry
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+          cache: poetry
+
+      - name: Setup DVC
+        uses: iterative/setup-dvc@v1
+
+      - name: Install dependencies
+        run: poetry install --no-root --no-interaction
+
+      - name: Set up DVC remote
+        run: |
+          dvc remote modify origin --local access_key_id ${{ secrets.DAGSHUB_ACCESS_KEY_ID }}
+          dvc remote modify origin --local secret_access_key ${{ secrets.DAGSHUB_SECRET_ACCESS_KEY }}
+
+      - name: DVC pull
+        run: dvc pull
+
+      - name: Fetch EV data
+        env:
+          TOMTOM_API_KEY: ${{ secrets.TOMTOM_API_KEY }}
+        run: |
+          poetry run python src/data/fetch_ev_data.py
+
+      - name: Preprocess EV data
+        run: |
+          poetry run python src/data/preprocess_ev_data.py
+
+      - name: DVC add + push
+        run: |
+          dvc add data
+          dvc push
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git add data.dvc
+          git commit -m "🚗 Update EV data on $(date)"
+          git push
