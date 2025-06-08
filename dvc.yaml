@@ -28,7 +28,7 @@ stages:
     cmd: |
       cd gx && poetry run python run_checkpoint.py
     deps:
-      - data/preprocessed/air/
+      - data/preprocessed/ev/
     outs:
       - gx/uncommitted:
           persist: true
