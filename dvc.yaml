@@ -58,6 +58,8 @@ stages:
       - gx/uncommitted
       - reports/ev_drift
     params:
+      - train_ev.test_size
+      - train_ev.random_state
       - train_ev.window_size
       - train_ev.freq
       - train_ev.target

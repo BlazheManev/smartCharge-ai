@@ -1,4 +1,6 @@
 train_ev:
+  test_size: 2
+  random_state: 42
   window_size: 6
   freq: "30min"
   target: "occupied"
