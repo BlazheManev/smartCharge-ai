@@ -1,0 +1,6 @@
+train:
+  test_size: 24
+  window_size: 12
+  target_col: occupied
+  random_state: 42
+  model_path: models/ev
