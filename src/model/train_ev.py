@@ -48,12 +48,12 @@ mlflow.set_experiment("iis_ev_training")
 
 # Train per station
 data_dir = "data/preprocessed/ev"
-for filename in os.listdir(data_dir):
-    if not filename.endswith(".csv"):
-        continue
+csv_files = [f for f in os.listdir(data_dir) if f.endswith(".csv")]
+total_files = len(csv_files)
 
+for i, filename in enumerate(csv_files, start=1):
     station = filename.replace(".csv", "")
-    print(f"\n🚗 Training model for EV station: {station}")
+    print(f"\n🚗 Training model for EV station: {station} ({i}/{total_files})")
 
     df = pd.read_csv(os.path.join(data_dir, filename))
     if "timestamp" not in df.columns or target_col not in df.columns:
