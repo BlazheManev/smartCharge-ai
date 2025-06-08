@@ -21,7 +21,7 @@ stages:
     deps:
     - path: data/raw/ev/ljubljana_ev_availability_combined.json
       hash: md5
-      md5: 71890c7da912b29fdf8c9819e1244ae2
+      md5: c7ecbdcd675dc5af676cb34930e25ded
       size: 37729
     - path: src/data/preprocess_ev_data.py
       hash: md5
@@ -30,30 +30,30 @@ stages:
     outs:
     - path: data/preprocessed/ev
       hash: md5
-      md5: c7888a31b879e2cd4f2b309f39d61b7c.dir
-      size: 59153
+      md5: ca079cfa429cbd572fe17bf70a3d921e.dir
+      size: 64837
       nfiles: 41
   validate_ev_data:
     cmd: "cd gx && poetry run python run_checkpoint.py\n"
     deps:
     - path: data/preprocessed/ev/
       hash: md5
-      md5: c7888a31b879e2cd4f2b309f39d61b7c.dir
-      size: 59153
+      md5: ca079cfa429cbd572fe17bf70a3d921e.dir
+      size: 64837
       nfiles: 41
     outs:
     - path: gx/uncommitted
       hash: md5
-      md5: 3fabf78319442d76863f110fd0873f83.dir
-      size: 12189615
-      nfiles: 393
+      md5: b0e3de78c9d7ca77102383962e6bcd68.dir
+      size: 13877254
+      nfiles: 475
   test_ev_data:
     cmd: poetry run python src/data/test_ev_data.py
     deps:
     - path: data/preprocessed/ev
       hash: md5
-      md5: c7888a31b879e2cd4f2b309f39d61b7c.dir
-      size: 59153
+      md5: ca079cfa429cbd572fe17bf70a3d921e.dir
+      size: 64837
       nfiles: 41
     - path: src/data/test_ev_data.py
       hash: md5
@@ -62,6 +62,6 @@ stages:
     outs:
     - path: reports/ev_drift
       hash: md5
-      md5: 20dd2a12963619cd6f6b7bd7f30f97b4.dir
-      size: 156833714
+      md5: 4bdb539001c10d328852e73038566e80.dir
+      size: 156856729
       nfiles: 41
