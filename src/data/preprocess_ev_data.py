@@ -13,7 +13,6 @@ def preprocess_ev_data():
     with open(INPUT_FILE, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
     count = 0
 
     for entry in data.get("results", []):
@@ -22,9 +21,9 @@ def preprocess_ev_data():
         address = entry.get("address", "Unknown")
         connectors = entry.get("availability", [])
         position = entry.get("position", {})
-        timestamp = entry.get("fetched_at", datetime.now().isoformat())
+        timestamp = entry.get("fetched_at")
 
-        if not station_id or not connectors:
+        if not station_id or not connectors or not timestamp:
             continue
 
         rows = []
@@ -42,21 +41,17 @@ def preprocess_ev_data():
                 "unknown": conn.get("availability", {}).get("current", {}).get("unknown")
             })
 
-        df_new = pd.DataFrame(rows)
-        df_new = df_new.drop_duplicates(subset=["timestamp", "type"], keep="last")
+        df_new = pd.DataFrame(rows).drop_duplicates(subset=["timestamp", "type"], keep="last")
 
-        path = os.path.join(OUTPUT_DIR, f"{station_id}.csv")
+        # Build per-station directory and filename
+        station_dir = os.path.join(OUTPUT_DIR, station_id)
+        os.makedirs(station_dir, exist_ok=True)
 
-        # Append if exists and dedupe
-        if os.path.exists(path):
-            df_old = pd.read_csv(path)
-            df_combined = pd.concat([df_old, df_new], ignore_index=True)
-            df_combined.drop_duplicates(subset=["timestamp", "type"], keep="last", inplace=True)
-        else:
-            df_combined = df_new
+        timestamp_short = datetime.fromisoformat(timestamp).strftime("%Y%m%d%H%M%S")
+        output_path = os.path.join(station_dir, f"{timestamp_short}.csv")
+        df_new.to_csv(output_path, index=False)
 
-        df_combined.to_csv(path, index=False)
-        print(f"✅ Saved: {path}")
+        print(f"✅ Saved: {output_path}")
         count += 1
 
     print(f"\n📦 Finished preprocessing {count} stations.")
