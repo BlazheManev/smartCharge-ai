@@ -43,8 +43,8 @@ stages:
       nfiles: 41
     - path: gx/run_checkpoint.py
       hash: md5
-      md5: 68be4933416374b8ddc30bb6b464d601
-      size: 4153
+      md5: 3142224576fec6d085244e5268bde88d
+      size: 3934
     outs:
     - path: gx/uncommitted/data_docs/local_site
       hash: md5

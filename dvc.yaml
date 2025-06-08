@@ -1,4 +1,29 @@
 stages:
+  fetch_ev:
+    cmd: |
+      poetry run python src/data/fetch_ev_data.py
+      git commit -am "⚡ Updated raw EV data on $(date) with DVC pipeline" || true
+      git push || true
+      dvc push || true
+    deps:
+      - src/data/fetch_ev_data.py
+    outs:
+      - data/raw/ev/ljubljana_ev_availability_combined.json
+    always_changed: true
+
+  preprocess_ev:
+    cmd: |
+      poetry run python src/data/preprocess_ev_data.py
+      git commit -am "🧹 Preprocessed EV data on $(date) with DVC pipeline" || true
+      git push || true
+      dvc push || true
+    deps:
+      - src/data/preprocess_ev_data.py
+      - data/raw/ev/ljubljana_ev_availability_combined.json
+    outs:
+      - data/preprocessed/ev:
+          persist: true
+
   validate_ev_data:
     cmd: poetry run python gx/run_checkpoint.py
     deps:
