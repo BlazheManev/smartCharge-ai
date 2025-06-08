@@ -21,7 +21,7 @@ stages:
     deps:
     - path: data/raw/ev/ljubljana_ev_availability_combined.json
       hash: md5
-      md5: 5fe557cb52ba6e5f02ee4b86ca52eb89
+      md5: 0aebd1a5fe036d61e779b70c89497994
       size: 37729
     - path: src/data/preprocess_ev_data.py
       hash: md5
@@ -30,6 +30,6 @@ stages:
     outs:
     - path: data/preprocessed/ev
       hash: md5
-      md5: f19de129c8d81b0cff4861ac3178ee1d.dir
-      size: 8255
+      md5: dccc848434d9db7c88e64cff40d4ce0d.dir
+      size: 13681
       nfiles: 41
