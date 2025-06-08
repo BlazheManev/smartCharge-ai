@@ -29,15 +29,38 @@ stages:
       cd gx && poetry run python run_checkpoint.py
     deps:
       - data/preprocessed/ev/
+      - gx/run_checkpoint.py
+      - gx/great_expectations.yml
     outs:
       - gx/uncommitted:
           persist: true
 
   test_ev_data:
-    cmd: poetry run python src/data/test_ev_data.py
+    cmd: |
+      poetry run python src/data/test_ev_data.py
     deps:
       - src/data/test_ev_data.py
       - data/preprocessed/ev
     outs:
       - reports/ev_drift:
+          persist: true
+
+  train_ev:
+    cmd: |
+      poetry run python src/model/train_ev.py
+      git commit -am "🤖 Trained EV model on $(date) via DVC pipeline" || true
+      git push || true
+      dvc push || true
+    deps:
+      - src/model/train_ev.py
+      - src/model/preprocess.py
+      - data/preprocessed/ev
+      - gx/uncommitted
+      - reports/ev_drift
+    params:
+      - train_ev.window_size
+      - train_ev.freq
+      - train_ev.target
+    outs:
+      - models/:
           persist: true

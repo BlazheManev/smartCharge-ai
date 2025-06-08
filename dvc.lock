@@ -7,8 +7,8 @@ stages:
     deps:
     - path: src/data/fetch_ev_data.py
       hash: md5
-      md5: e4114650fc5ad3007d0e27ffc7f8a625
-      size: 3284
+      md5: 0656e046499586808beb067d25b81ab2
+      size: 3390
     outs:
     - path: data/raw/ev/ljubljana_ev_availability_combined.json
       hash: md5
@@ -25,8 +25,8 @@ stages:
       size: 37729
     - path: src/data/preprocess_ev_data.py
       hash: md5
-      md5: fca402c49896198f1697bcd463994594
-      size: 2678
+      md5: 4bbdbd31b80927dccac3fb1dca85a76c
+      size: 2755
     outs:
     - path: data/preprocessed/ev
       hash: md5
@@ -41,6 +41,14 @@ stages:
       md5: ebaedfbd149b8e9126118e8f805ed234.dir
       size: 70521
       nfiles: 41
+    - path: gx/great_expectations.yml
+      hash: md5
+      md5: 3c20c2f0ad8b37cdc9c4666dcdedd02b
+      size: 9136
+    - path: gx/run_checkpoint.py
+      hash: md5
+      md5: 3142224576fec6d085244e5268bde88d
+      size: 3934
     outs:
     - path: gx/uncommitted
       hash: md5
@@ -48,7 +56,7 @@ stages:
       size: 15564893
       nfiles: 557
   test_ev_data:
-    cmd: poetry run python src/data/test_ev_data.py
+    cmd: "poetry run python src/data/test_ev_data.py\n"
     deps:
     - path: data/preprocessed/ev
       hash: md5
@@ -57,11 +65,49 @@ stages:
       nfiles: 41
     - path: src/data/test_ev_data.py
       hash: md5
-      md5: bc384044bb131beb80d21f51db9ea27c
-      size: 2593
+      md5: 9ce83619ab008d568b81aa26f7680cd6
+      size: 2678
     outs:
     - path: reports/ev_drift
       hash: md5
       md5: dc6453829b209f1a56134833f4bbf078.dir
       size: 156809287
       nfiles: 41
+  train_ev:
+    cmd: "poetry run python src/model/train_ev.py\ngit commit -am \"🤖 Trained EV model
+      on $(date) via DVC pipeline\" || true\ngit push || true\ndvc push || true\n"
+    deps:
+    - path: data/preprocessed/ev
+      hash: md5
+      md5: ebaedfbd149b8e9126118e8f805ed234.dir
+      size: 70521
+      nfiles: 41
+    - path: gx/uncommitted
+      hash: md5
+      md5: 16c027fe948be21ac70fa58b936c6e2a.dir
+      size: 15564893
+      nfiles: 557
+    - path: reports/ev_drift
+      hash: md5
+      md5: dc6453829b209f1a56134833f4bbf078.dir
+      size: 156809287
+      nfiles: 41
+    - path: src/model/preprocess.py
+      hash: md5
+      md5: 3cfc826696bacf4a9e5590f3efbf8fce
+      size: 1768
+    - path: src/model/train_ev.py
+      hash: md5
+      md5: fb820cbb3f5f31a0b55e279a9d1bfdae
+      size: 4129
+    params:
+      params.yaml:
+        train_ev.freq: 30min
+        train_ev.target: occupied
+        train_ev.window_size: 6
+    outs:
+    - path: models/
+      hash: md5
+      md5: 0cd6829e142f75dc266fbe4cd0117755.dir
+      size: 1626852
+      nfiles: 8
