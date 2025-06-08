@@ -21,7 +21,7 @@ from preprocess import DatePreprocessor, SlidingWindowTransformer
 params = yaml.safe_load(open("params.yaml"))["train_ev"]
 test_size = params["test_size"]
 window_size = params["window_size"]
-target_col = params["target_col"]
+target_col = params["target"]
 random_state = params["random_state"]
 
 # Set reproducibility
