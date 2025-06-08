@@ -27,13 +27,13 @@ def preprocess_ev_data():
         timestamp = entry.get("fetched_at")
 
         if not timestamp:
-            timestamp = datetime.now(slovenia_tz)
+            timestamp = datetime.now(slovenia_tz).isoformat()
         else:
             try:
                 timestamp = datetime.fromisoformat(timestamp)
-                timestamp = timestamp.astimezone(slovenia_tz)
+                timestamp = timestamp.astimezone(slovenia_tz).isoformat()
             except Exception:
-                timestamp = datetime.now(slovenia_tz)
+                timestamp = datetime.now(slovenia_tz).isoformat()
 
         timestamp = timestamp.replace(tzinfo=None).isoformat()
 
@@ -56,7 +56,7 @@ def preprocess_ev_data():
             })
 
         df_new = pd.DataFrame(rows)
-        df_new.drop_duplicates(subset=["timestamp", "type"], keep="last", inplace=True)
+        df_new = df_new.drop_duplicates(subset=["timestamp", "type"], keep="last")
 
         path = os.path.join(OUTPUT_DIR, f"{station_id}.csv")
         if os.path.exists(path):
@@ -67,7 +67,6 @@ def preprocess_ev_data():
             df_combined = df_new
 
         df_combined.sort_values("timestamp", inplace=True)
-        df_combined["timestamp"] = pd.to_datetime(df_combined["timestamp"]).dt.strftime("%Y-%m-%dT%H:%M:%S")
         df_combined.to_csv(path, index=False)
         print(f"✅ Updated: {path}")
         new_entries += 1
