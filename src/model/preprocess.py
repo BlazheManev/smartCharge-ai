@@ -4,19 +4,35 @@ from sklearn.base import BaseEstimator, TransformerMixin
 
 
 class DatePreprocessor(BaseEstimator, TransformerMixin):
-    def __init__(self, col):
+    def __init__(self, col, freq="5min"):
         self.col = col
+        self.freq = freq
 
     def fit(self, X, y=None):
         return self
 
     def transform(self, X):
         X = X.copy()
-        X[self.col] = pd.to_datetime(X[self.col])
+
+        # Parse datetime robustly with UTC awareness
+        X[self.col] = pd.to_datetime(X[self.col], utc=True, errors="coerce")
+
+        # Drop rows where timestamp failed to parse
+        X = X.dropna(subset=[self.col])
+
+        # Convert to local timezone (Europe/Ljubljana) and remove tz info
+        X[self.col] = X[self.col].dt.tz_convert("Europe/Ljubljana").dt.tz_localize(None)
+
+        # Sort values by time
         X = X.sort_values(by=self.col)
-        date_range = pd.date_range(start=X[self.col].min(), end=X[self.col].max(), freq="5min")  # or "1H"
-        new_df = pd.DataFrame(date_range, columns=[self.col])
-        X = pd.merge(new_df, X, on=self.col, how="left")
+
+        # Generate complete datetime range with 5-minute steps
+        date_range = pd.date_range(start=X[self.col].min(), end=X[self.col].max(), freq=self.freq)
+        date_df = pd.DataFrame({self.col: date_range})
+
+        # Merge to ensure all time points exist
+        X = pd.merge(date_df, X, on=self.col, how="left")
+
         return X
 
 
