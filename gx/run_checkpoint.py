@@ -4,7 +4,7 @@ import great_expectations as gx
 
 context = gx.get_context()
 datasource_name = "ev_charging"
-base_dir = "../data/preprocessed/air"
+base_dir = "../data/preprocessed/ev"
 
 valid_types = {
     "IEC62196Type2Outlet", "IEC62196Type2CableAttached", "IEC62196Type2CCS",
