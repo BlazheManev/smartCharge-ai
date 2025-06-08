@@ -32,3 +32,13 @@ stages:
     outs:
       - gx/uncommitted:
           persist: true
+    wdir: gx
+
+  test_ev_data:
+    cmd: poetry run python src/data/test_ev_data.py
+    deps:
+      - src/data/test_ev_data.py
+      - data/preprocessed/ev
+    outs:
+      - reports/ev_drift:
+          persist: true
