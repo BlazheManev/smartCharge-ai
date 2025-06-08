@@ -72,7 +72,6 @@ for filename in os.listdir(data_dir):
         continue
 
     df = df.drop(columns=["date"])
-
     df_test = df.iloc[-test_size:]
     df_train = df.iloc[:-test_size]
 
@@ -93,9 +92,17 @@ for filename in os.listdir(data_dir):
     try:
         X_train, y_train = pipeline.fit_transform(df_train)
         X_test, y_test = pipeline.transform(df_test)
+
+        if len(X_test) == 0 or len(y_test) == 0:
+            print(f"⚠️ Skipping {station}: empty test set after transformation.")
+            continue
+
     except Exception as e:
         print(f"⚠️ Skipping {station} due to pipeline error: {e}")
         continue
+
+    print(f"📐 X_train: {X_train.shape}, y_train: {y_train.shape}")
+    print(f"📐 X_test: {X_test.shape}, y_test: {y_test.shape}")
 
     model = build_model((X_train.shape[1], X_train.shape[2]))
     early_stopping = EarlyStopping(monitor="val_loss", patience=5, restore_best_weights=True)
@@ -108,6 +115,10 @@ for filename in os.listdir(data_dir):
 
     # Retrain on full data
     X_full, y_full = pipeline.fit_transform(df)
+    if len(X_full) == 0 or len(y_full) == 0:
+        print(f"⚠️ Skipping retraining for {station}: not enough data.")
+        continue
+
     model = build_model((X_full.shape[1], X_full.shape[2]))
     model.fit(X_full, y_full, epochs=50, batch_size=32, validation_split=0.2, callbacks=[early_stopping])
 
