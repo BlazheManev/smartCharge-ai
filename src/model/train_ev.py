@@ -30,7 +30,6 @@ random.seed(random_state)
 np.random.seed(random_state)
 tf.random.set_seed(random_state)
 
-# Model builder
 def build_model(input_shape):
     model = Sequential()
     model.add(LSTM(50, return_sequences=True, input_shape=input_shape))
@@ -41,7 +40,6 @@ def build_model(input_shape):
     model.compile(optimizer="adam", loss="mean_squared_error")
     return model
 
-# Process each station
 data_dir = "data/preprocessed/ev"
 output_dir = "models"
 os.makedirs(output_dir, exist_ok=True)
@@ -55,16 +53,25 @@ for filename in os.listdir(data_dir):
 
     df = pd.read_csv(os.path.join(data_dir, filename))
 
-    # 🔧 Normalize timestamp
-    df["timestamp"] = pd.to_datetime(df["timestamp"]).dt.tz_localize(None)
+    if "timestamp" not in df.columns or target_col not in df.columns:
+        print(f"⚠️ Skipping {station} due to missing 'timestamp' or '{target_col}' columns.")
+        continue
 
-    # Prepare input
-    df = df[["timestamp", target_col]]
+    df = df[["timestamp", target_col]].copy()
     df.rename(columns={"timestamp": "date"}, inplace=True)
 
     date_preprocessor = DatePreprocessor("date")
     df = date_preprocessor.fit_transform(df)
-    df = df.drop(columns=["date"], axis=1)
+
+    # 💡 Check available data after preprocessing
+    non_null_count = df[target_col].notna().sum()
+    print(f"ℹ️  {station}: {non_null_count} non-null '{target_col}' entries after preprocessing.")
+
+    if non_null_count <= window_size + test_size:
+        print(f"⚠️ Skipping {station}: not enough data after preprocessing.")
+        continue
+
+    df = df.drop(columns=["date"])
 
     df_test = df.iloc[-test_size:]
     df_train = df.iloc[:-test_size]
@@ -87,7 +94,7 @@ for filename in os.listdir(data_dir):
         X_train, y_train = pipeline.fit_transform(df_train)
         X_test, y_test = pipeline.transform(df_test)
     except Exception as e:
-        print(f"⚠️ Skipping {station} due to data error: {e}")
+        print(f"⚠️ Skipping {station} due to pipeline error: {e}")
         continue
 
     model = build_model((X_train.shape[1], X_train.shape[2]))

@@ -4,9 +4,8 @@ from sklearn.base import BaseEstimator, TransformerMixin
 
 
 class DatePreprocessor(BaseEstimator, TransformerMixin):
-    def __init__(self, col, freq="5min"):
+    def __init__(self, col):
         self.col = col
-        self.freq = freq
 
     def fit(self, X, y=None):
         return self
@@ -14,24 +13,27 @@ class DatePreprocessor(BaseEstimator, TransformerMixin):
     def transform(self, X):
         X = X.copy()
 
-        # Parse datetime robustly with UTC awareness
-        X[self.col] = pd.to_datetime(X[self.col], utc=True, errors="coerce")
+        def robust_parse(val):
+            try:
+                ts = pd.to_datetime(val)
+                if ts.tzinfo is None:
+                    ts = ts.tz_localize("Europe/Ljubljana", ambiguous="NaT")
+                else:
+                    ts = ts.tz_convert("Europe/Ljubljana")
+                return ts.tz_localize(None)
+            except Exception:
+                return pd.NaT
 
-        # Drop rows where timestamp failed to parse
+        X[self.col] = X[self.col].apply(robust_parse)
+        invalid_rows = X[self.col].isna().sum()
+        if invalid_rows > 0:
+            print(f"⚠️ Dropped {invalid_rows} rows due to unparseable timestamps.")
+
         X = X.dropna(subset=[self.col])
-
-        # Convert to local timezone (Europe/Ljubljana) and remove tz info
-        X[self.col] = X[self.col].dt.tz_convert("Europe/Ljubljana").dt.tz_localize(None)
-
-        # Sort values by time
         X = X.sort_values(by=self.col)
 
-        # Generate complete datetime range with 5-minute steps
-        date_range = pd.date_range(start=X[self.col].min(), end=X[self.col].max(), freq=self.freq)
-        date_df = pd.DataFrame({self.col: date_range})
-
-        # Merge to ensure all time points exist
-        X = pd.merge(date_df, X, on=self.col, how="left")
+        print(f"🕒 Timestamp range: {X[self.col].min()} → {X[self.col].max()}")
+        print(f"📈 Kept original rows: {len(X)}")
 
         return X
 
