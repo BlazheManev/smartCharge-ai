@@ -223,7 +223,7 @@ fluent_datasources:
       ev_station__mLr0FsQFrhnZyGQdbY6DA:
         type: csv
         batching_regex: _mLr0FsQFrhnZyGQdbY6DA\.csv
-    base_directory: ../data/preprocessed/ev
+    base_directory: data/preprocessed/ev
 notebooks:
 anonymous_usage_statistics:
   data_context_id: 8924a1bc-93d7-401a-a6b1-b3ff05c52556

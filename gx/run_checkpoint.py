@@ -2,53 +2,61 @@ import os
 import sys
 import great_expectations as gx
 
-context = gx.get_context()
-datasource_name = "ev_charging"
-base_dir = "../data/preprocessed/ev"
+# Always load context explicitly from the gx folder
+context = gx.get_context(context_root_dir="gx")
 
+# Set the base directory for preprocessed EV station files
+base_dir = os.path.abspath(os.path.join("data", "preprocessed", "ev"))
+datasource_name = "ev_charging"
+asset_name = "all_ev_stations"
+
+# Define valid EV plug types
 valid_types = {
     "IEC62196Type2Outlet", "IEC62196Type2CableAttached", "IEC62196Type2CCS",
     "IEC62196Type1", "CHAdeMO", "TeslaSupercharger", "Other"
 }
 
+# Ensure directory exists
+if not os.path.isdir(base_dir):
+    print(f"❌ ERROR: Directory not found: {base_dir}")
+    sys.exit(1)
+
+# Get all CSV files
 csv_files = [f for f in os.listdir(base_dir) if f.endswith(".csv")]
+if not csv_files:
+    print("❌ No CSV files found for validation.")
+    sys.exit(1)
+
 all_passed = True
 
 for csv_file in csv_files:
     station_id = csv_file.replace(".csv", "")
-    asset_name = f"ev_station_{station_id}"
     checkpoint_name = f"checkpoint_ev_{station_id}"
     suite_name = f"ev_expectations_{station_id}"
+    csv_path = os.path.join(base_dir, csv_file)
 
-    print(f"\n🚦 Running checkpoint for: {station_id}")
+    print(f"\n🚦 Validating station: {station_id}")
 
     try:
         datasource = context.get_datasource(datasource_name)
-        try:
-            asset = datasource.get_asset(asset_name)
-        except (gx.exceptions.DataContextError, LookupError):
-            print(f"➕ Registering new asset: {asset_name}")
-            asset = datasource.add_csv_asset(
-                name=asset_name,
-                batching_regex=rf"{station_id}\.csv"
-            )
+        asset = datasource.get_asset(asset_name)
 
         # Build batch request
-        batch_request = asset.build_batch_request()
+        batch_request = asset.build_batch_request(
+            {"path": csv_path}
+        )
 
-        # Check if expectation suite exists
+        # Create expectation suite if it doesn't exist
         existing_suites = [s.expectation_suite_name for s in context.list_expectation_suites()]
         if suite_name not in existing_suites:
-            print(f"🧠 Creating new expectation suite for: {station_id}")
-            suite = context.add_expectation_suite(suite_name)
+            print(f"🧠 Creating expectation suite for: {station_id}")
+            context.add_expectation_suite(suite_name)
 
-            # ⬅️ THIS is how you get the validator (NOT asset.get_validator())
             validator = context.get_validator(
                 batch_request=batch_request,
                 expectation_suite_name=suite_name
             )
 
-            # Add expectations
             validator.expect_column_to_exist("timestamp")
             validator.expect_column_values_to_not_be_null("timestamp")
             validator.expect_column_values_to_match_strftime_format("timestamp", "%Y-%m-%dT%H:%M:%S")
@@ -65,10 +73,9 @@ for csv_file in csv_files:
             validator.expect_column_values_to_be_between("occupied", 0, 100)
             validator.expect_column_values_to_be_between("unknown", 0, 100)
 
-            # Save suite
             validator.save_expectation_suite(discard_failed_expectations=False)
 
-        # Create checkpoint if needed
+        # Create or fetch checkpoint
         try:
             checkpoint = context.get_checkpoint(checkpoint_name)
         except gx.exceptions.CheckpointNotFoundError:
@@ -81,8 +88,8 @@ for csv_file in csv_files:
                 }]
             )
 
-        # Run the checkpoint
         result = checkpoint.run(run_id=f"{station_id}_run")
+
         if result["success"]:
             print(f"✅ PASSED: {station_id}")
         else:
@@ -90,14 +97,15 @@ for csv_file in csv_files:
             all_passed = False
 
     except Exception as e:
-        print(f"❌ ERROR with {station_id}: {e}")
+        print(f"❌ ERROR validating {station_id}: {e}")
         all_passed = False
 
+# Generate Data Docs
 context.build_data_docs()
 
 if all_passed:
-    print("\n✅ All EV station validations passed!")
+    print("\n✅ All validations passed.")
     sys.exit(0)
 else:
-    print("\n❌ One or more EV station validations failed.")
+    print("\n❌ One or more validations failed.")
     sys.exit(1)

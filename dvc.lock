@@ -7,8 +7,8 @@ stages:
     deps:
     - path: src/data/fetch_ev_data.py
       hash: md5
-      md5: e4114650fc5ad3007d0e27ffc7f8a625
-      size: 3284
+      md5: 0656e046499586808beb067d25b81ab2
+      size: 3390
     outs:
     - path: data/raw/ev/ljubljana_ev_availability_combined.json
       hash: md5
@@ -21,8 +21,8 @@ stages:
     deps:
     - path: data/raw/ev/ljubljana_ev_availability_combined.json
       hash: md5
-      md5: c3a3e8a0bdfb390874d901401dea7ca5
-      size: 39229
+      md5: e68a77c644bbe878962bd72ab685ada2
+      size: 37729
     - path: src/data/preprocess_ev_data.py
       hash: md5
       md5: 4bbdbd31b80927dccac3fb1dca85a76c
@@ -43,8 +43,8 @@ stages:
       nfiles: 41
     - path: gx/run_checkpoint.py
       hash: md5
-      md5: 3142224576fec6d085244e5268bde88d
-      size: 3934
+      md5: 753eea08d2fe1ee89662c4c74d5c7288
+      size: 3997
     outs:
     - path: gx/uncommitted/data_docs/local_site
       hash: md5
