@@ -2,16 +2,27 @@ import os
 import sys
 import great_expectations as gx
 
-context = gx.get_context()
+context = gx.get_context(context_root_dir="gx")
 datasource_name = "ev_charging"
-base_dir = "../data/preprocessed/ev"
+
+base_dir = os.path.join(os.path.dirname(__file__), "..", "data", "preprocessed", "ev")
+base_dir = os.path.abspath(base_dir)
 
 valid_types = {
     "IEC62196Type2Outlet", "IEC62196Type2CableAttached", "IEC62196Type2CCS",
     "IEC62196Type1", "CHAdeMO", "TeslaSupercharger", "Other"
 }
 
+# Ensure the directory exists
+if not os.path.isdir(base_dir):
+    print(f"❌ ERROR: base_dir '{base_dir}' does not exist.")
+    sys.exit(1)
+
 csv_files = [f for f in os.listdir(base_dir) if f.endswith(".csv")]
+if not csv_files:
+    print(f"❌ ERROR: No CSV files found in '{base_dir}'.")
+    sys.exit(1)
+
 all_passed = True
 
 for csv_file in csv_files:
@@ -24,6 +35,7 @@ for csv_file in csv_files:
 
     try:
         datasource = context.get_datasource(datasource_name)
+
         try:
             asset = datasource.get_asset(asset_name)
         except (gx.exceptions.DataContextError, LookupError):
@@ -33,7 +45,6 @@ for csv_file in csv_files:
                 batching_regex=rf"{station_id}\.csv"
             )
 
-        # Build batch request
         batch_request = asset.build_batch_request()
 
         # Check if expectation suite exists
@@ -42,13 +53,11 @@ for csv_file in csv_files:
             print(f"🧠 Creating new expectation suite for: {station_id}")
             suite = context.add_expectation_suite(suite_name)
 
-            # ⬅️ THIS is how you get the validator (NOT asset.get_validator())
             validator = context.get_validator(
                 batch_request=batch_request,
                 expectation_suite_name=suite_name
             )
 
-            # Add expectations
             validator.expect_column_to_exist("timestamp")
             validator.expect_column_values_to_not_be_null("timestamp")
             validator.expect_column_values_to_match_strftime_format("timestamp", "%Y-%m-%dT%H:%M:%S")
@@ -65,10 +74,9 @@ for csv_file in csv_files:
             validator.expect_column_values_to_be_between("occupied", 0, 100)
             validator.expect_column_values_to_be_between("unknown", 0, 100)
 
-            # Save suite
             validator.save_expectation_suite(discard_failed_expectations=False)
 
-        # Create checkpoint if needed
+        # Create or get checkpoint
         try:
             checkpoint = context.get_checkpoint(checkpoint_name)
         except gx.exceptions.CheckpointNotFoundError:
@@ -93,8 +101,10 @@ for csv_file in csv_files:
         print(f"❌ ERROR with {station_id}: {e}")
         all_passed = False
 
+# Build the docs
 context.build_data_docs()
 
+# Final summary
 if all_passed:
     print("\n✅ All EV station validations passed!")
     sys.exit(0)
