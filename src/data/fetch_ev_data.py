@@ -1,152 +1,106 @@
 import os
-import joblib
-import random
-import yaml
-import numpy as np
-import pandas as pd
-import tensorflow as tf
-import tf2onnx
-import mlflow
-import mlflow.tensorflow
+import json
+import requests
+from datetime import datetime
+from time import sleep
 
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import LSTM, Dense, Dropout, Input
-from tensorflow.keras.callbacks import EarlyStopping
-from sklearn.compose import ColumnTransformer
-from sklearn.impute import SimpleImputer
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.metrics import mean_squared_error, mean_absolute_error
 
-from preprocess_ev import DatePreprocessor, SlidingWindowTransformer  # <- your new version
+API_KEY = "MGhthFNeQIv644euJYokp02evFVDrDM9"
+if not API_KEY:
+    raise ValueError("Missing TOMTOM_API_KEY environment variable")
 
-# Load training config
-params = yaml.safe_load(open("params.yaml"))["train"]
-test_size = params["test_size"]
-window_size = params["window_size"]
-target_col = params["target_col"]
-random_state = params["random_state"]
-model_dir = params["model_path"]
+OUTPUT_FILE = "data/raw/ev/ljubljana_ev_availability_combined.json"
 
-os.makedirs(model_dir, exist_ok=True)
+CENTER_LAT = 46.04861
+CENTER_LON = 14.50254
+RADIUS_METERS = 26634
+LIMIT = 100
+CATEGORY = "7309"  # EV station
 
-# Reproducibility
-os.environ["PYTHONHASHSEED"] = str(random_state)
-random.seed(random_state)
-np.random.seed(random_state)
-tf.random.set_seed(random_state)
+def fetch_ljubljana_ev_stations():
+    print("📡 Fetching EV stations with availability in Ljubljana...")
 
-mlflow.set_experiment("ev_training")
+    url = "https://api.tomtom.com/search/2/categorySearch/electric%20vehicle%20station.json"
 
-data_dir = "data/preprocessed/ev"
-for file_name in os.listdir(data_dir):
-    if not file_name.endswith(".csv"):
-        continue
-
-    station = file_name.replace(".csv", "")
-    print(f"\n🔧 Training for EV station: {station}")
-
-    df = pd.read_csv(os.path.join(data_dir, file_name))
-    if target_col not in df.columns or "timestamp" not in df.columns:
-        print(f"⚠️ Skipping {station}: required columns missing.")
-        continue
-
-    df = df[["timestamp", target_col]]
-    date_preprocessor = DatePreprocessor("timestamp")
-    df = date_preprocessor.fit_transform(df).drop(columns=["timestamp"])
-
-    if len(df) <= test_size + window_size:
-        print(f"⚠️ Skipping {station}: not enough data.")
-        continue
-
-    df_train = df.iloc[:-test_size]
-    df_test = df.iloc[-test_size:]
-
-    numeric_transformer = Pipeline([
-        ("imputer", SimpleImputer(strategy="mean")),
-        ("scaler", MinMaxScaler())
-    ])
-
-    preprocess = ColumnTransformer([
-        ("num", numeric_transformer, [target_col])
-    ])
-
-    sliding = SlidingWindowTransformer(window_size)
-    pipeline = Pipeline([
-        ("pre", preprocess),
-        ("window", sliding)
-    ])
+    params = {
+        "key": API_KEY,
+        "lat": CENTER_LAT,
+        "lon": CENTER_LON,
+        "radius": RADIUS_METERS,
+        "limit": LIMIT,
+        "ofs": 0,
+        "categorySet": CATEGORY,
+        "openingHours": "nextSevenDays",
+    }
 
     try:
-        X_train, y_train = pipeline.fit_transform(df_train)
-        X_test, y_test = pipeline.transform(df_test)
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        raw_results = response.json().get("results", [])
+        print(f"🔍 Offset 0: {len(raw_results)} stations received")
     except Exception as e:
-        print(f"❌ Failed for {station}: {e}")
-        continue
+        print(f"❌ Error fetching data: {e}")
+        return
 
-    input_shape = (X_train.shape[1], X_train.shape[2])
+    # Filter unique stations by ID
+    unique_stations = {}
+    for station in raw_results:
+        station_id = station.get("id")
+        if station_id and station_id not in unique_stations:
+            unique_stations[station_id] = station
 
-    def build_model(input_shape):
-        inputs = Input(shape=input_shape, name="input")
-        x = LSTM(50, return_sequences=True)(inputs)
-        x = Dropout(0.2)(x)
-        x = LSTM(50)(x)
-        x = Dropout(0.2)(x)
-        outputs = Dense(1, name="output")(x)
-        model = Model(inputs, outputs)
-        model.compile(optimizer="adam", loss="mean_squared_error")
-        return model
+    print(f"🧹 Deduplicated to {len(unique_stations)} unique stations")
 
-    with mlflow.start_run(run_name=f"train_ev_{station}"):
-        mlflow.log_params({
-            "station": station,
-            "test_size": test_size,
-            "window_size": window_size,
-            "target_col": target_col,
-            "random_state": random_state
-        })
+    # Process each station
+    processed = []
+    count = 1
+    for station in unique_stations.values():
+        availability_id = station.get("dataSources", {}).get("chargingAvailability", {}).get("id")
+        station_id = station.get("id")
+        name = station.get("poi", {}).get("name", "Unnamed")
+        address = station.get("address", {}).get("freeformAddress", "Unknown")
 
-        mlflow.tensorflow.autolog()
+        if not availability_id or not station_id:
+            continue
 
-        model = build_model(input_shape)
-        early_stop = EarlyStopping(monitor="val_loss", patience=5, restore_best_weights=True)
-
-        print(f"🚀 Training model for EV station {station}...")
-        model.fit(
-            X_train, y_train,
-            epochs=50,
-            batch_size=32,
-            validation_split=0.2,
-            callbacks=[early_stop],
-            verbose=1
+        # Fetch availability data
+        availability_url = (
+            f"https://api.tomtom.com/search/2/chargingAvailability.json"
+            f"?key={API_KEY}&chargingAvailability={availability_id}"
         )
+        try:
+            r = requests.get(availability_url)
+            r.raise_for_status()
+            availability = r.json()
+        except Exception as e:
+            print(f"⚠️  Skipped {name} – failed to fetch availability: {e}")
+            continue
 
-        print(f"📊 Evaluating model for EV station {station}...")
-        y_pred = model.predict(X_test)
-        mse = mean_squared_error(y_test, y_pred)
-        mae = mean_absolute_error(y_test, y_pred)
-        rmse = np.sqrt(mse)
+        combined = {
+            "id": station_id,
+            "name": name,
+            "address": address,
+            "position": station.get("position"),
+            "availability": availability.get("connectors", []),
+            "fetched_at": datetime.now().isoformat()
+        }
 
-        mlflow.log_metrics({
-            "mae": mae,
-            "mse": mse,
-            "rmse": rmse
-        })
+        processed.append(combined)
+        print(f"✅ {count:03d}: {name} – {address}")
+        count += 1
 
-        print(f"✅ {station} - MAE: {mae:.4f}, MSE: {mse:.4f}, RMSE: {rmse:.4f}")
+        sleep(0.25)
 
-        # Save ONNX model
-        print(f"💾 Saving ONNX model for {station}...")
-        spec = (tf.TensorSpec([None, *input_shape], tf.float32, name="input"),)
-        onnx_model, _ = tf2onnx.convert.from_keras(model, input_signature=spec, opset=13)
-        onnx_path = f"{model_dir}/model_{station}.onnx"
-        with open(onnx_path, "wb") as f:
-            f.write(onnx_model.SerializeToString())
-        mlflow.log_artifact(onnx_path)
+        if len(processed) >= 100:
+            print("🛑 Reached 100 stations with availability.")
+            break
 
-        # Save pipeline
-        pipeline_path = f"{model_dir}/pipeline_{station}.pkl"
-        joblib.dump(pipeline, pipeline_path)
-        mlflow.log_artifact(pipeline_path)
+    # Save to file
+    os.makedirs(os.path.dirname(OUTPUT_FILE), exist_ok=True)
+    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+        json.dump({"results": processed}, f, indent=2)
 
-print("\n🏁 All EV stations processed.")
+    print(f"\n💾 Saved {len(processed)} stations to {OUTPUT_FILE}")
+
+if __name__ == "__main__":
+    fetch_ljubljana_ev_stations()
