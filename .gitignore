@@ -17,6 +17,9 @@ poetry.toml
 # -------------------
 .ipynb_checkpoints/
 *.ipynb
+gx/*
+!gx/run_checkpoint.py
+!gx/great_expectations.yml
 
 # -------------------
 # PyCharm

@@ -1,0 +1,234 @@
+# Welcome to Great Expectations! Always know what to expect from your data.
+#
+# Here you can define datasources, batch kwargs generators, integrations and
+# more. This file is intended to be committed to your repo. For help with
+# configuration please:
+#   - Read our docs: https://docs.greatexpectations.io/docs/guides/connecting_to_your_data/connect_to_data_overview/#2-configure-your-datasource
+#   - Join our slack channel: http://greatexpectations.io/slack
+
+# config_version refers to the syntactic version of this config file, and is used in maintaining backwards compatibility
+# It is auto-generated and usually does not need to be changed.
+config_version: 3.0
+
+# Datasources tell Great Expectations where your data lives and how to get it.
+# Read more at https://docs.greatexpectations.io/docs/guides/connecting_to_your_data/connect_to_data_overview
+datasources: {}
+
+# This config file supports variable substitution which enables: 1) keeping
+# secrets out of source control & 2) environment-based configuration changes
+# such as staging vs prod.
+#
+# When GX encounters substitution syntax (like `my_key: ${my_value}` or
+# `my_key: $my_value`) in the great_expectations.yml file, it will attempt
+# to replace the value of `my_key` with the value from an environment
+# variable `my_value` or a corresponding key read from this config file,
+# which is defined through the `config_variables_file_path`.
+# Environment variables take precedence over variables defined here.
+#
+# Substitution values defined here can be a simple (non-nested) value,
+# nested value such as a dictionary, or an environment variable (i.e. ${ENV_VAR})
+#
+#
+# https://docs.greatexpectations.io/docs/guides/setup/configuring_data_contexts/how_to_configure_credentials
+
+
+config_variables_file_path: uncommitted/config_variables.yml
+
+# The plugins_directory will be added to your python path for custom modules
+# used to override and extend Great Expectations.
+plugins_directory: plugins/
+
+stores:
+# Stores are configurable places to store things like Expectations, Validations
+# Data Docs, and more. These are for advanced users only - most users can simply
+# leave this section alone.
+#
+# Three stores are required: expectations, validations, and
+# evaluation_parameters, and must exist with a valid store entry. Additional
+# stores can be configured for uses such as data_docs, etc.
+  expectations_store:
+    class_name: ExpectationsStore
+    store_backend:
+      class_name: TupleFilesystemStoreBackend
+      base_directory: expectations/
+
+  validations_store:
+    class_name: ValidationsStore
+    store_backend:
+      class_name: TupleFilesystemStoreBackend
+      base_directory: uncommitted/validations/
+
+  evaluation_parameter_store:
+    class_name: EvaluationParameterStore
+  checkpoint_store:
+    class_name: CheckpointStore
+    store_backend:
+      class_name: TupleFilesystemStoreBackend
+      suppress_store_backend_id: true
+      base_directory: checkpoints/
+
+  profiler_store:
+    class_name: ProfilerStore
+    store_backend:
+      class_name: TupleFilesystemStoreBackend
+      suppress_store_backend_id: true
+      base_directory: profilers/
+
+expectations_store_name: expectations_store
+validations_store_name: validations_store
+evaluation_parameter_store_name: evaluation_parameter_store
+checkpoint_store_name: checkpoint_store
+
+data_docs_sites:
+  # Data Docs make it simple to visualize data quality in your project. These
+  # include Expectations, Validations & Profiles. The are built for all
+  # Datasources from JSON artifacts in the local repo including validations &
+  # profiles from the uncommitted directory. Read more at https://docs.greatexpectations.io/docs/terms/data_docs
+  local_site:
+    class_name: SiteBuilder
+    show_how_to_buttons: true
+    store_backend:
+      class_name: TupleFilesystemStoreBackend
+      base_directory: uncommitted/data_docs/local_site/
+    site_index_builder:
+      class_name: DefaultSiteIndexBuilder
+
+fluent_datasources:
+  ev_charging:
+    type: pandas_filesystem
+    assets:
+      ev_all_stations:
+        type: csv
+        batching_regex: .*\.csv
+      ev_station_-3fchx9uvuODLLBZZcznxQ:
+        type: csv
+        batching_regex: -3fchx9uvuODLLBZZcznxQ\.csv
+      ev_station_-dOmGzyXki5kYbHDJeONdg:
+        type: csv
+        batching_regex: -dOmGzyXki5kYbHDJeONdg\.csv
+      ev_station_-zPs1yNuWplLLdJeoQJPJg:
+        type: csv
+        batching_regex: -zPs1yNuWplLLdJeoQJPJg\.csv
+      ev_station_0y1H9q5qCcIrind2Od0bSQ:
+        type: csv
+        batching_regex: 0y1H9q5qCcIrind2Od0bSQ\.csv
+      ev_station_2-ojfgDAnqoM2dpS4lA9UA:
+        type: csv
+        batching_regex: 2-ojfgDAnqoM2dpS4lA9UA\.csv
+      ev_station_4R6tB6BM5JfyMjJK5NsMcQ:
+        type: csv
+        batching_regex: 4R6tB6BM5JfyMjJK5NsMcQ\.csv
+      ev_station_5XHZ-V7huzt4ju6xn4WVkw:
+        type: csv
+        batching_regex: 5XHZ-V7huzt4ju6xn4WVkw\.csv
+      ev_station_94rI__OMlL8tZSi5nXIyww:
+        type: csv
+        batching_regex: 94rI__OMlL8tZSi5nXIyww\.csv
+      ev_station_bC4VxTH_AM3kevwpTVdxDg:
+        type: csv
+        batching_regex: bC4VxTH_AM3kevwpTVdxDg\.csv
+      ev_station_CLB3QcRN6GxRHdmkCOkzlg:
+        type: csv
+        batching_regex: CLB3QcRN6GxRHdmkCOkzlg\.csv
+      ev_station_cXsN5ws9pM2zkr-x8dvoAw:
+        type: csv
+        batching_regex: cXsN5ws9pM2zkr-x8dvoAw\.csv
+      ev_station_DyUPcHRvmqUAJc7uMFbcJA:
+        type: csv
+        batching_regex: DyUPcHRvmqUAJc7uMFbcJA\.csv
+      ev_station_E8YC8RLcx4rDa-XNXT48ZQ:
+        type: csv
+        batching_regex: E8YC8RLcx4rDa-XNXT48ZQ\.csv
+      ev_station_Ew8uS77YyTfJ5rANeS5E0g:
+        type: csv
+        batching_regex: Ew8uS77YyTfJ5rANeS5E0g\.csv
+      ev_station_Fivd-vgw6kSYLGN9Wf87HQ:
+        type: csv
+        batching_regex: Fivd-vgw6kSYLGN9Wf87HQ\.csv
+      ev_station_H03vLgRtq6UdHM69wVY9tA:
+        type: csv
+        batching_regex: H03vLgRtq6UdHM69wVY9tA\.csv
+      ev_station_HAbxPKf2aI2JOPHINhoIGA:
+        type: csv
+        batching_regex: HAbxPKf2aI2JOPHINhoIGA\.csv
+      ev_station_hkFsonBNn2vMY6VKPKktOg:
+        type: csv
+        batching_regex: hkFsonBNn2vMY6VKPKktOg\.csv
+      ev_station_i1O2SylrfRAvP1O-uT3h9A:
+        type: csv
+        batching_regex: i1O2SylrfRAvP1O-uT3h9A\.csv
+      ev_station_iKn-jLd0mBMeUwHeD1p84w:
+        type: csv
+        batching_regex: iKn-jLd0mBMeUwHeD1p84w\.csv
+      ev_station_iP131v9v7jpD31FGyKZhMw:
+        type: csv
+        batching_regex: iP131v9v7jpD31FGyKZhMw\.csv
+      ev_station_iUfOUiYYIm7xD7C6wOjPHA:
+        type: csv
+        batching_regex: iUfOUiYYIm7xD7C6wOjPHA\.csv
+      ev_station_j9jztpIz0scUQzdG4yApsg:
+        type: csv
+        batching_regex: j9jztpIz0scUQzdG4yApsg\.csv
+      ev_station_lV9G0SlmFoStjlnbrRl_cQ:
+        type: csv
+        batching_regex: lV9G0SlmFoStjlnbrRl_cQ\.csv
+      ev_station_MRMfg6KmcVpvOEHuStq8Hg:
+        type: csv
+        batching_regex: MRMfg6KmcVpvOEHuStq8Hg\.csv
+      ev_station_PadGq-xkmNlyA6-0ZylsRA:
+        type: csv
+        batching_regex: PadGq-xkmNlyA6-0ZylsRA\.csv
+      ev_station_pZl7A2qVPDzMpyUpp1HAfg:
+        type: csv
+        batching_regex: pZl7A2qVPDzMpyUpp1HAfg\.csv
+      ev_station_qQ8FWgeEqqyD0qR1cRelow:
+        type: csv
+        batching_regex: qQ8FWgeEqqyD0qR1cRelow\.csv
+      ev_station_QTTdBJqXOGjwHWAoHzgoUA:
+        type: csv
+        batching_regex: QTTdBJqXOGjwHWAoHzgoUA\.csv
+      ev_station_qXGvqnEXPDzB_ZrDg-w2Hw:
+        type: csv
+        batching_regex: qXGvqnEXPDzB_ZrDg-w2Hw\.csv
+      ev_station_Sn9o2Rx2iuq8cmf3rGIBZg:
+        type: csv
+        batching_regex: Sn9o2Rx2iuq8cmf3rGIBZg\.csv
+      ev_station_sO1lIBoUs3IZnqBDhTIxOw:
+        type: csv
+        batching_regex: sO1lIBoUs3IZnqBDhTIxOw\.csv
+      ev_station_sWn33nq89RmYylB_PY4ODg:
+        type: csv
+        batching_regex: sWn33nq89RmYylB_PY4ODg\.csv
+      ev_station_TLLdBkmvjzlnSdf6Pcu_cg:
+        type: csv
+        batching_regex: TLLdBkmvjzlnSdf6Pcu_cg\.csv
+      ev_station_uUYQ6pW7Y9PkDebXORKhXA:
+        type: csv
+        batching_regex: uUYQ6pW7Y9PkDebXORKhXA\.csv
+      ev_station_voGjZ7di9_FoX4TiqRd9QQ:
+        type: csv
+        batching_regex: voGjZ7di9_FoX4TiqRd9QQ\.csv
+      ev_station_X-AL4G5cFaVYD-gIhSJqgQ:
+        type: csv
+        batching_regex: X-AL4G5cFaVYD-gIhSJqgQ\.csv
+      ev_station_YacGuAICw4rOvaHipGX7Lw:
+        type: csv
+        batching_regex: YacGuAICw4rOvaHipGX7Lw\.csv
+      ev_station_YKhfMXv7_USHfbEaDB90XQ:
+        type: csv
+        batching_regex: YKhfMXv7_USHfbEaDB90XQ\.csv
+      ev_station_zwZLhhEb_1vjds8yIPRQUQ:
+        type: csv
+        batching_regex: zwZLhhEb_1vjds8yIPRQUQ\.csv
+      ev_station__mLr0FsQFrhnZyGQdbY6DA:
+        type: csv
+        batching_regex: _mLr0FsQFrhnZyGQdbY6DA\.csv
+    base_directory: data\preprocessed\ev
+notebooks:
+anonymous_usage_statistics:
+  data_context_id: 8924a1bc-93d7-401a-a6b1-b3ff05c52556
+  enabled: true
+include_rendered_content:
+  globally: false
+  expectation_suite: false
+  expectation_validation_result: false
