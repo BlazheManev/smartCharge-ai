@@ -2,6 +2,7 @@ import os
 import json
 import pandas as pd
 from datetime import datetime
+import pytz  # For timezone handling
 
 INPUT_FILE = "data/raw/ev/ljubljana_ev_availability_combined.json"
 OUTPUT_DIR = "data/preprocessed/ev"
@@ -16,13 +17,24 @@ def preprocess_ev_data():
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     new_entries = 0
 
+    slovenia_tz = pytz.timezone("Europe/Ljubljana")
+
     for entry in data.get("results", []):
         station_id = entry.get("id")
         name = entry.get("name", "Unnamed")
         address = entry.get("address", "Unknown")
         connectors = entry.get("availability", [])
         position = entry.get("position", {})
-        timestamp = entry.get("fetched_at", datetime.now().isoformat())
+        timestamp = entry.get("fetched_at")
+
+        if not timestamp:
+            timestamp = datetime.now(slovenia_tz).isoformat()
+        else:
+            try:
+                timestamp = datetime.fromisoformat(timestamp)
+                timestamp = timestamp.astimezone(slovenia_tz).isoformat()
+            except Exception:
+                timestamp = datetime.now(slovenia_tz).isoformat()
 
         if not station_id or not connectors:
             continue
