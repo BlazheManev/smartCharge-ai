@@ -3,7 +3,7 @@ name: Fetch EV data on schedule
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 */2 * * *'
+    - cron: '*/30 * * * *'
 
 jobs:
   fetch_ev:
