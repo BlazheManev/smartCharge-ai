@@ -5,7 +5,7 @@ from datetime import datetime
 from time import sleep
 
 
-API_KEY = os.getenv("TOMTOM_API_KEY")
+API_KEY = "MGhthFNeQIv644euJYokp02evFVDrDM9"
 if not API_KEY:
     raise ValueError("Missing TOMTOM_API_KEY environment variable")
 

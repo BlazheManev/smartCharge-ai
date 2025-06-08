@@ -1,0 +1,35 @@
+schema: '2.0'
+stages:
+  fetch_ev:
+    cmd: "poetry run python src/data/fetch_ev_data.py\ngit commit -am \"⚡ Updated
+      raw EV data on $(date) with DVC pipeline\" || true\ngit push || true\ndvc push
+      || true\n"
+    deps:
+    - path: src/data/fetch_ev_data.py
+      hash: md5
+      md5: 0656e046499586808beb067d25b81ab2
+      size: 3390
+    outs:
+    - path: data/raw/ev/ljubljana_ev_availability_combined.json
+      hash: md5
+      md5: 551bed8624f2527124e2ba59a81480b4
+      size: 39229
+  preprocess_ev:
+    cmd: "poetry run python src/data/preprocess_ev_data.py\ngit commit -am \"🧹 Preprocessed
+      EV data on $(date) with DVC pipeline\" || true\ngit push || true\ndvc push ||
+      true\n"
+    deps:
+    - path: data/raw/ev/ljubljana_ev_availability_combined.json
+      hash: md5
+      md5: 551bed8624f2527124e2ba59a81480b4
+      size: 39229
+    - path: src/data/preprocess_ev_data.py
+      hash: md5
+      md5: 1fc5337c4101d9e47daa2177b0376764
+      size: 2295
+    outs:
+    - path: data/preprocessed/ev
+      hash: md5
+      md5: 571c38beb7b9347c4f41797b85f7fa4d.dir
+      size: 8339
+      nfiles: 41
