@@ -20,6 +20,8 @@ poetry.toml
 gx/*
 !gx/run_checkpoint.py
 !gx/great_expectations.yml
+!gx/expectations/
+!gx/checkpoints/
 
 # -------------------
 # PyCharm
