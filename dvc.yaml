@@ -25,10 +25,10 @@ stages:
           persist: true
 
   validate_ev_data:
-    cmd: poetry run python run_checkpoint.py
+    cmd: |
+      cd gx && poetry run python run_checkpoint.py
     deps:
-      - data/preprocessed/ev
-      - run_checkpoint.py
+      - data/preprocessed/air/
     outs:
-      - uncommitted/data_docs/local_site
-    wdir: g
+      - gx/uncommitted:
+          persist: true
