@@ -18,7 +18,7 @@ from tensorflow.keras.callbacks import EarlyStopping
 from preprocess import DatePreprocessor, SlidingWindowTransformer
 
 # Load global parameters
-params = yaml.safe_load(open("params.yaml"))["train"]
+params = yaml.safe_load(open("params.yaml"))["train_ev"]
 test_size = params["test_size"]
 window_size = params["window_size"]
 target_col = params["target_col"]
