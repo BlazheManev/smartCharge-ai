@@ -2,7 +2,7 @@ import os
 import json
 import pandas as pd
 from datetime import datetime
-import pytz  # For timezone handling
+import pytz
 
 INPUT_FILE = "data/raw/ev/ljubljana_ev_availability_combined.json"
 OUTPUT_DIR = "data/preprocessed/ev"
@@ -16,7 +16,6 @@ def preprocess_ev_data():
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     new_entries = 0
-
     slovenia_tz = pytz.timezone("Europe/Ljubljana")
 
     for entry in data.get("results", []):
@@ -28,13 +27,15 @@ def preprocess_ev_data():
         timestamp = entry.get("fetched_at")
 
         if not timestamp:
-            timestamp = datetime.now(slovenia_tz).isoformat()
+            timestamp = datetime.now(slovenia_tz)
         else:
             try:
                 timestamp = datetime.fromisoformat(timestamp)
-                timestamp = timestamp.astimezone(slovenia_tz).isoformat()
+                timestamp = timestamp.astimezone(slovenia_tz)
             except Exception:
-                timestamp = datetime.now(slovenia_tz).isoformat()
+                timestamp = datetime.now(slovenia_tz)
+
+        timestamp = timestamp.replace(tzinfo=None).isoformat()
 
         if not station_id or not connectors:
             continue
@@ -55,10 +56,9 @@ def preprocess_ev_data():
             })
 
         df_new = pd.DataFrame(rows)
-        df_new = df_new.drop_duplicates(subset=["timestamp", "type"], keep="last")
+        df_new.drop_duplicates(subset=["timestamp", "type"], keep="last", inplace=True)
 
         path = os.path.join(OUTPUT_DIR, f"{station_id}.csv")
-
         if os.path.exists(path):
             df_old = pd.read_csv(path)
             df_combined = pd.concat([df_old, df_new], ignore_index=True)
@@ -67,6 +67,7 @@ def preprocess_ev_data():
             df_combined = df_new
 
         df_combined.sort_values("timestamp", inplace=True)
+        df_combined["timestamp"] = pd.to_datetime(df_combined["timestamp"]).dt.strftime("%Y-%m-%dT%H:%M:%S")
         df_combined.to_csv(path, index=False)
         print(f"✅ Updated: {path}")
         new_entries += 1

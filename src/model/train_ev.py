@@ -30,7 +30,7 @@ random.seed(random_state)
 np.random.seed(random_state)
 tf.random.set_seed(random_state)
 
-# Prepare model-building function
+# Model builder
 def build_model(input_shape):
     model = Sequential()
     model.add(LSTM(50, return_sequences=True, input_shape=input_shape))
@@ -54,19 +54,21 @@ for filename in os.listdir(data_dir):
     print(f"\n🚀 Training model for station: {station}")
 
     df = pd.read_csv(os.path.join(data_dir, filename))
+
+    # 🔧 Normalize timestamp
+    df["timestamp"] = pd.to_datetime(df["timestamp"]).dt.tz_localize(None)
+
+    # Prepare input
     df = df[["timestamp", target_col]]
     df.rename(columns={"timestamp": "date"}, inplace=True)
 
-    # Fill missing timestamps
     date_preprocessor = DatePreprocessor("date")
     df = date_preprocessor.fit_transform(df)
     df = df.drop(columns=["date"], axis=1)
 
-    # Split into train/test
     df_test = df.iloc[-test_size:]
     df_train = df.iloc[:-test_size]
 
-    # Build preprocessing pipeline
     numeric_transformer = Pipeline([
         ("fillna", SimpleImputer(strategy="mean")),
         ("normalize", MinMaxScaler())
@@ -76,14 +78,11 @@ for filename in os.listdir(data_dir):
         ("numeric_transformer", numeric_transformer, [target_col]),
     ])
 
-    sliding_window_transformer = SlidingWindowTransformer(window_size)
-
     pipeline = Pipeline([
         ("preprocess", preprocess),
-        ("sliding_window_transformer", sliding_window_transformer),
+        ("sliding_window_transformer", SlidingWindowTransformer(window_size)),
     ])
 
-    # Transform data
     try:
         X_train, y_train = pipeline.fit_transform(df_train)
         X_test, y_test = pipeline.transform(df_test)
@@ -91,24 +90,20 @@ for filename in os.listdir(data_dir):
         print(f"⚠️ Skipping {station} due to data error: {e}")
         continue
 
-    # Train model
     model = build_model((X_train.shape[1], X_train.shape[2]))
     early_stopping = EarlyStopping(monitor="val_loss", patience=5, restore_best_weights=True)
     model.fit(X_train, y_train, epochs=50, batch_size=32, validation_split=0.2, callbacks=[early_stopping])
 
-    # Evaluate on test set
     y_pred = model.predict(X_test)
     mse = mean_squared_error(y_test, y_pred)
     mae = mean_absolute_error(y_test, y_pred)
     print(f"📊 {station} - MAE: {mae:.4f}, RMSE: {np.sqrt(mse):.4f}")
 
-    # Retrain on all data
+    # Retrain on full data
     X_full, y_full = pipeline.fit_transform(df)
     model = build_model((X_full.shape[1], X_full.shape[2]))
     model.fit(X_full, y_full, epochs=50, batch_size=32, validation_split=0.2, callbacks=[early_stopping])
 
-    # Save results
     model.save(f"{output_dir}/model_{station}.keras")
     joblib.dump(pipeline, f"{output_dir}/pipeline_{station}.pkl")
-
     print(f"✅ Saved model and pipeline for {station}")
