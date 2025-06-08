@@ -79,37 +79,37 @@ stages:
     deps:
     - path: data/preprocessed/ev
       hash: md5
-      md5: ebaedfbd149b8e9126118e8f805ed234.dir
-      size: 70521
+      md5: 32593b7388acc1b6cac62abd8ce7bf42.dir
+      size: 76205
       nfiles: 41
     - path: gx/uncommitted
       hash: md5
-      md5: 16c027fe948be21ac70fa58b936c6e2a.dir
-      size: 15564893
-      nfiles: 557
+      md5: b176dba88464ee436ebdd6c4e2fb0416.dir
+      size: 17252529
+      nfiles: 639
     - path: reports/ev_drift
       hash: md5
-      md5: dc6453829b209f1a56134833f4bbf078.dir
-      size: 156809287
+      md5: 97850f92a127c0aaa2629b62e79be8cb.dir
+      size: 156880511
       nfiles: 41
     - path: src/model/preprocess.py
       hash: md5
-      md5: 3cfc826696bacf4a9e5590f3efbf8fce
-      size: 1768
+      md5: b9da9b572d006dbd072da6c4799897f6
+      size: 1711
     - path: src/model/train_ev.py
       hash: md5
-      md5: 19b470ca7b66d05b59eceb053e1fa3c0
-      size: 4132
+      md5: d3db09c1933968e63af87b576e351cbb
+      size: 4446
     params:
       params.yaml:
         train_ev.freq: 30min
         train_ev.random_state: 42
         train_ev.target: occupied
-        train_ev.test_size: 2
-        train_ev.window_size: 6
+        train_ev.test_size: 4
+        train_ev.window_size: 3
     outs:
     - path: models/
       hash: md5
-      md5: 0cd6829e142f75dc266fbe4cd0117755.dir
-      size: 1626852
-      nfiles: 8
+      md5: fcd8f235e2a4e3d279f5c29606ed2994.dir
+      size: 16676258
+      nfiles: 82
