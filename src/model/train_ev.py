@@ -36,7 +36,7 @@ np.random.seed(random_state)
 tf.random.set_seed(random_state)
 
 # Setup MLflow
-if os.getenv("CI"):  # GitHub Actions
+if os.getenv("CI"):
     mlflow.set_tracking_uri("https://dagshub.com/BlazheManev/smartcharge-ai.mlflow")
     os.environ["MLFLOW_TRACKING_USERNAME"] = 'BlazheManev'
     os.environ["MLFLOW_TRACKING_PASSWORD"] = '11bfefc758786562b31a6197b270a83255ff8694'
@@ -46,10 +46,21 @@ else:
 
 mlflow.set_experiment("iis_ev_training")
 
-# Train per station
+# Gather CSVs
 data_dir = "data/preprocessed/ev"
 csv_files = [f for f in os.listdir(data_dir) if f.endswith(".csv")]
 total_files = len(csv_files)
+
+def build_model(shape):
+    inputs = Input(shape=shape, name="input")
+    x = LSTM(50, return_sequences=True)(inputs)
+    x = Dropout(0.2)(x)
+    x = LSTM(50)(x)
+    x = Dropout(0.2)(x)
+    outputs = Dense(1, name="output")(x)
+    model = Model(inputs, outputs)
+    model.compile(optimizer="adam", loss="mean_squared_error")
+    return model
 
 for i, filename in enumerate(csv_files, start=1):
     station = filename.replace(".csv", "")
@@ -62,8 +73,6 @@ for i, filename in enumerate(csv_files, start=1):
 
     df = df[["timestamp", target_col]]
     df.rename(columns={"timestamp": "date"}, inplace=True)
-
-    # Preprocess datetime
     df = DatePreprocessor("date").fit_transform(df).drop(columns=["date"])
 
     if len(df) <= test_size + window_size:
@@ -100,17 +109,6 @@ for i, filename in enumerate(csv_files, start=1):
 
     input_shape = (X_train.shape[1], X_train.shape[2])
 
-    def build_model(shape):
-        inputs = Input(shape=shape, name="input")
-        x = LSTM(50, return_sequences=True)(inputs)
-        x = Dropout(0.2)(x)
-        x = LSTM(50)(x)
-        x = Dropout(0.2)(x)
-        outputs = Dense(1, name="output")(x)
-        model = Model(inputs, outputs)
-        model.compile(optimizer="adam", loss="mean_squared_error")
-        return model
-
     with mlflow.start_run(run_name=f"train_ev_{station}"):
         mlflow.log_params({
             "station": station,
@@ -123,10 +121,17 @@ for i, filename in enumerate(csv_files, start=1):
         mlflow.tensorflow.autolog()
 
         model = build_model(input_shape)
-        early_stop = EarlyStopping(monitor="val_loss", patience=5, restore_best_weights=True)
+        early_stop = EarlyStopping(monitor="val_loss", patience=3, restore_best_weights=True)
 
         print(f"📦 Training EV model for {station}")
-        model.fit(X_train, y_train, epochs=50, batch_size=32, validation_split=0.2, callbacks=[early_stop])
+        model.fit(
+            X_train, y_train,
+            epochs=15,
+            batch_size=64,
+            validation_split=0.2,
+            callbacks=[early_stop],
+            verbose=0
+        )
 
         y_pred = model.predict(X_test)
         mse = mean_squared_error(y_test, y_pred)
@@ -141,16 +146,15 @@ for i, filename in enumerate(csv_files, start=1):
 
         print(f"📊 {station} - MAE: {mae:.4f}, RMSE: {rmse:.4f}")
 
-        # Export ONNX
-        print(f"💾 Exporting ONNX for {station}")
-        spec = (tf.TensorSpec([None, *input_shape], tf.float32, name="input"),)
-        onnx_model, _ = tf2onnx.convert.from_keras(model, input_signature=spec, opset=13)
-        onnx_path = f"{model_dir}/model_ev_{station}.onnx"
-        with open(onnx_path, "wb") as f:
-            f.write(onnx_model.SerializeToString())
-        mlflow.log_artifact(onnx_path)
+        if not os.getenv("CI"):
+            print(f"💾 Exporting ONNX for {station}")
+            spec = (tf.TensorSpec([None, *input_shape], tf.float32, name="input"),)
+            onnx_model, _ = tf2onnx.convert.from_keras(model, input_signature=spec, opset=13)
+            onnx_path = f"{model_dir}/model_ev_{station}.onnx"
+            with open(onnx_path, "wb") as f:
+                f.write(onnx_model.SerializeToString())
+            mlflow.log_artifact(onnx_path)
 
-        # Save pipeline
         pipe_path = f"{model_dir}/pipeline_ev_{station}.pkl"
         joblib.dump(pipeline, pipe_path)
         mlflow.log_artifact(pipe_path)
