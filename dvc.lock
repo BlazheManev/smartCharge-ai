@@ -21,7 +21,7 @@ stages:
     deps:
     - path: data/raw/ev/ljubljana_ev_availability_combined.json
       hash: md5
-      md5: 54f5e03fb3b7fd08d46ee252e3d24811
+      md5: 5279858b3991309d23f55f6ac1e9e0c9
       size: 36849
     - path: src/data/preprocess_ev_data.py
       hash: md5
@@ -30,16 +30,16 @@ stages:
     outs:
     - path: data/preprocessed/ev
       hash: md5
-      md5: b8296ae6801c9e5adef315de7ac81258.dir
-      size: 200315
+      md5: 19f57c9d9fd37c8eaabb59ad2146836b.dir
+      size: 205865
       nfiles: 41
   validate_ev_data:
     cmd: "cd gx && poetry run python run_checkpoint.py\n"
     deps:
     - path: data/preprocessed/ev/
       hash: md5
-      md5: b8296ae6801c9e5adef315de7ac81258.dir
-      size: 200315
+      md5: 19f57c9d9fd37c8eaabb59ad2146836b.dir
+      size: 205865
       nfiles: 41
     - path: gx/great_expectations.yml
       hash: md5
@@ -52,16 +52,16 @@ stages:
     outs:
     - path: gx/uncommitted
       hash: md5
-      md5: 8856e684ca93d1895f84cda3b12c254a.dir
-      size: 54380551
-      nfiles: 2443
+      md5: 339c7610814e43baa3d8963e9803d879.dir
+      size: 56068190
+      nfiles: 2525
   test_ev_data:
     cmd: "poetry run python src/data/test_ev_data.py\n"
     deps:
     - path: data/preprocessed/ev
       hash: md5
-      md5: b8296ae6801c9e5adef315de7ac81258.dir
-      size: 200315
+      md5: 19f57c9d9fd37c8eaabb59ad2146836b.dir
+      size: 205865
       nfiles: 41
     - path: src/data/test_ev_data.py
       hash: md5
@@ -70,8 +70,8 @@ stages:
     outs:
     - path: reports/ev_drift
       hash: md5
-      md5: 25dc08f6047ce2006c9e2f5e796ec4ee.dir
-      size: 157199833
+      md5: 129e61880e7b9a60a5f343c154d1de0c.dir
+      size: 157140731
       nfiles: 41
   train_ev:
     cmd: "poetry run python src/model/train_ev.py\ngit commit -am \"🤖 Trained EV model
