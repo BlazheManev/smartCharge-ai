@@ -159,4 +159,7 @@ for i, filename in enumerate(csv_files, start=1):
         joblib.dump(pipeline, pipe_path)
         mlflow.log_artifact(pipe_path)
 
+    break
+
+
 print("\n🏁 All EV stations processed and logged with MLflow.")
