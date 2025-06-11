@@ -113,3 +113,20 @@ stages:
       md5: c43cb3ac8ac398e04f6aa0dbfa6fe45e.dir
       size: 22544290
       nfiles: 164
+  export_and_deploy_frontend:
+    cmd: scripts\export_frontend.bat
+    deps:
+    - path: scripts\export_frontend.bat
+      hash: md5
+      md5: fdecf9923af07953625c385d498b75a4
+      size: 901
+      isexec: true
+    - path: src/model/export_mlflow_models.py
+      hash: md5
+      md5: 77a8d7e94719d976ec7533dd613924fb
+      size: 833
+    outs:
+    - path: public/ml_models.json
+      hash: md5
+      md5: 531620c85d585f8479ef468de9ebdf70
+      size: 490370

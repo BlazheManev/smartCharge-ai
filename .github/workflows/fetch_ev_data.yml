@@ -50,6 +50,7 @@ jobs:
       - name: Run DVC pipeline (EV)
         env:
           TOMTOM_API_KEY: ${{ secrets.TOMTOM_API_KEY }}
+          GITHUB_PAT: ${{ secrets.PAT_TOKEN }}
         run: |
           dvc repro --force
           dvc push

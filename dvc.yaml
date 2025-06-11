@@ -66,3 +66,13 @@ stages:
     outs:
       - models/:
           persist: true
+
+  export_and_deploy_frontend:
+    cmd: scripts/export_frontend.sh
+    deps:
+      - src/model/export_mlflow_models.py
+      - scripts/export_frontend.sh
+    outs:
+      - public/ml_models.json
+    always_changed: true
+
