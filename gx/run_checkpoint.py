@@ -37,11 +37,14 @@ for csv_file in csv_files:
 
         batch_request = asset.build_batch_request()
 
-        # Create suite if not exists
+        # Delete suite if it exists (for a clean rebuild)
         existing_suites = [s.expectation_suite_name for s in context.list_expectation_suites()]
-        if suite_name not in existing_suites:
-            print(f"🧠 Creating new expectation suite for: {station_id}")
-            context.add_expectation_suite(suite_name)
+        if suite_name in existing_suites:
+            print(f"🧽 Deleting old expectation suite: {suite_name}")
+            context.delete_expectation_suite(suite_name)
+
+        # Create fresh suite
+        context.add_expectation_suite(suite_name)
 
         # Always get validator
         validator = context.get_validator(
@@ -49,10 +52,7 @@ for csv_file in csv_files:
             expectation_suite_name=suite_name
         )
 
-        # Clear old expectations to prevent duplicates
-        validator.clear_expectations()
-
-        # Define expectations
+        # Add expectations
         validator.expect_column_to_exist("timestamp")
         validator.expect_column_values_to_not_be_null("timestamp")
         validator.expect_column_values_to_match_strftime_format("timestamp", "%Y-%m-%dT%H:%M:%S")
