@@ -4,8 +4,9 @@ import requests
 from datetime import datetime
 from time import sleep
 
+load_dotenv()
 
-API_KEY = "MGhthFNeQIv644euJYokp02evFVDrDM9"
+API_KEY = "TOMTOM_API_KEY"
 if not API_KEY:
     raise ValueError("Missing TOMTOM_API_KEY environment variable")
 

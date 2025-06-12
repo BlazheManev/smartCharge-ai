@@ -77,4 +77,8 @@ stages:
     always_changed: true
 
   upload_reports:
-    cmd: bash scripts/upload_reports.sh
+    cmd: poetry run python src/data/upload_html_to_mongo.py
+    deps:
+      - reports/ev_drift/
+      - gx/uncommitted/data_docs/local_site/expectations/
+      - src/data/upload_html_to_mongo.py

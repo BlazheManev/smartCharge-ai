@@ -3,7 +3,7 @@ name = "iis-projekt"
 version = "0.1.0"
 description = ""
 authors = [
-    {name = "Blazhe Manev",email = "blaze_manev@yahoo.com"}
+    {name = "Blazhe Manev", email = "blaze_manev@yahoo.com"}
 ]
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
@@ -21,9 +21,9 @@ dependencies = [
     "mlflow (>=2.22.0,<3.0.0)",
     "tf2onnx (>=1.10.0,<1.16.1)",
     "dagshub (>=0.3.23,<1.0.0)",
-    "tensorflow (>=2.19.0,<3.0.0)",
+    "pymongo (>=4.7.2,<5.0.0)",
+    "tensorflow (>=2.19.0,<3.0.0)"
 ]
-
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

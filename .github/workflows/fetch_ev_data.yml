@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     environment:
-      name: master-push-lock  # 🚧 lock to avoid push conflicts
+      name: master-push-lock
 
     steps:
       - name: Checkout repository
@@ -53,6 +53,7 @@ jobs:
       - name: Run fast DVC stages
         env:
           TOMTOM_API_KEY: ${{ secrets.TOMTOM_API_KEY }}
+          MONGO_URI: ${{ secrets.MONGO_URI }}
         run: |
           dvc repro fetch_ev preprocess_ev validate_ev_data test_ev_data upload_reports
           dvc push
