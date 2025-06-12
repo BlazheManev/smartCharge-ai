@@ -1,10 +1,7 @@
 import os
 import pymongo
 from bs4 import BeautifulSoup
-from dotenv import load_dotenv
 
-# Load .env for local use
-load_dotenv()
 
 # Connect to MongoDB (will work with GH Actions secrets too)
 client = pymongo.MongoClient(os.getenv("MONGO_URI"))
