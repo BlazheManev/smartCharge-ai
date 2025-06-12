@@ -67,11 +67,16 @@ stages:
       - models/:
           persist: true
 
-  export_and_deploy_frontend:
-    cmd: scripts/export_frontend.sh
+  export_and_deploy_ml_json:
+    cmd: |
+      poetry run python src/model/export_mlflow_models.py
+      poetry run python src/model/upload_model_json_to_mongo.py
+      git commit -am "📦 Exported and synced ML model data on $(date)" || true
+      git push || true
+      dvc push || true
     deps:
       - src/model/export_mlflow_models.py
-      - scripts/export_frontend.sh
+      - src/model/upload_model_json_to_mongo.py
     outs:
       - public/ml_models.json
     always_changed: true
