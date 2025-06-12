@@ -1,7 +1,7 @@
 import os
 import sys
-import re
 import great_expectations as gx
+from great_expectations.exceptions import CheckpointNotFoundError, DataContextError
 
 context = gx.get_context()
 datasource_name = "ev_charging"
@@ -28,61 +28,54 @@ for csv_file in csv_files:
 
         try:
             asset = datasource.get_asset(asset_name)
-        except (gx.exceptions.DataContextError, LookupError):
+        except (DataContextError, LookupError):
             print(f"➕ Registering new asset: {asset_name}")
             asset = datasource.add_csv_asset(
                 name=asset_name,
-                batching_regex=re.escape(station_id) + r"\.csv"
+                batching_regex=rf"{station_id}\.csv"
             )
 
         batch_request = asset.build_batch_request()
 
-        # Check if expectation suite exists
+        # Create suite if not exists
         existing_suites = [s.expectation_suite_name for s in context.list_expectation_suites()]
         if suite_name not in existing_suites:
             print(f"🧠 Creating new expectation suite for: {station_id}")
-            suite = context.add_expectation_suite(suite_name)
+            context.add_expectation_suite(suite_name)
 
-            validator = context.get_validator(
-                batch_request=batch_request,
-                expectation_suite_name=suite_name
-            )
+        # Always get validator
+        validator = context.get_validator(
+            batch_request=batch_request,
+            expectation_suite_name=suite_name
+        )
 
-            # ✅ ADD THESE CHECKS:
-            print(f"🔎 Columns in batch: {validator.columns}")
-            if not validator.columns:
-                print(f"⚠️ Skipping {station_id}: No columns found in the data.")
-                continue
+        # Clear old expectations to prevent duplicates
+        validator.clear_expectations()
 
-            row_count = validator.head(n_rows=1).shape[0]
-            if row_count == 0:
-                print(f"⚠️ Skipping {station_id}: No rows found in the data.")
-                continue
+        # Define expectations
+        validator.expect_column_to_exist("timestamp")
+        validator.expect_column_values_to_not_be_null("timestamp")
+        validator.expect_column_values_to_match_strftime_format("timestamp", "%Y-%m-%dT%H:%M:%S")
 
-            # Add expectations
-            validator.expect_column_to_exist("timestamp")
-            validator.expect_column_values_to_not_be_null("timestamp")
-            validator.expect_column_values_to_match_strftime_format("timestamp", "%Y-%m-%dT%H:%M:%S")
+        validator.expect_column_values_to_not_be_null("lat")
+        validator.expect_column_values_to_not_be_null("lon")
+        validator.expect_column_values_to_be_between("lat", 45.3, 46.9)
+        validator.expect_column_values_to_be_between("lon", 13.3, 16.6)
 
-            validator.expect_column_values_to_not_be_null("lat")
-            validator.expect_column_values_to_not_be_null("lon")
-            validator.expect_column_values_to_be_between("lat", 45.3, 46.9)
-            validator.expect_column_values_to_be_between("lon", 13.3, 16.6)
+        validator.expect_column_values_to_be_in_set("type", list(valid_types))
 
-            validator.expect_column_values_to_be_in_set("type", list(valid_types))
+        validator.expect_column_values_to_be_between("total", 0, 100)
+        validator.expect_column_values_to_be_between("available", 0, 100)
+        validator.expect_column_values_to_be_between("occupied", 0, 100)
+        validator.expect_column_values_to_be_between("unknown", 0, 100)
 
-            validator.expect_column_values_to_be_between("total", 0, 100)
-            validator.expect_column_values_to_be_between("available", 0, 100)
-            validator.expect_column_values_to_be_between("occupied", 0, 100)
-            validator.expect_column_values_to_be_between("unknown", 0, 100)
+        # Save expectations
+        validator.save_expectation_suite(discard_failed_expectations=False)
 
-            validator.save_expectation_suite(discard_failed_expectations=False)
-            print(f"📋 Suite saved with {len(validator.get_expectation_suite().expectations)} expectations.")
-
-        # Run or create checkpoint
+        # Create checkpoint if needed
         try:
             checkpoint = context.get_checkpoint(checkpoint_name)
-        except gx.exceptions.CheckpointNotFoundError:
+        except CheckpointNotFoundError:
             print(f"🛠️ Creating checkpoint: {checkpoint_name}")
             checkpoint = context.add_checkpoint(
                 name=checkpoint_name,
@@ -92,6 +85,7 @@ for csv_file in csv_files:
                 }]
             )
 
+        # Run checkpoint
         result = checkpoint.run(run_id=f"{station_id}_run")
         if result["success"]:
             print(f"✅ PASSED: {station_id}")
@@ -103,9 +97,10 @@ for csv_file in csv_files:
         print(f"❌ ERROR with {station_id}: {e}")
         all_passed = False
 
-# Rebuild docs
+# Build documentation
 context.build_data_docs()
 
+# Exit status
 if all_passed:
     print("\n✅ All EV station validations passed!")
     sys.exit(0)
