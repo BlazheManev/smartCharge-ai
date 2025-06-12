@@ -7,12 +7,12 @@ stages:
     deps:
     - path: src/data/fetch_ev_data.py
       hash: md5
-      md5: 69191c6de2086b58cf28998c5798073a
-      size: 3892
+      md5: 3a287f6b63984144808a0ac9b31ee262
+      size: 3773
     outs:
     - path: data/raw/ev/ljubljana_ev_availability_combined.json
       hash: md5
-      md5: 508afe9e86c46144085e14324f546f45
+      md5: ef2778929b27534f8560761fab0f89bb
       size: 36849
   preprocess_ev:
     cmd: "poetry run python src/data/preprocess_ev_data.py\ngit commit -am \"🧹 Preprocessed
@@ -148,9 +148,9 @@ stages:
       md5: a9a10749a1aa4e44c93b98848b28582c
       size: 1519
   export_and_deploy_ml_json:
-    cmd: "poetry run python src/model/export_mlflow_models.py\npoetry run python src/model/upload_model_json_to_mongo.py\n
-      git commit -am \"📦 Exported and synced ML model data on $(date)\" || true\n
-      git push || true\ndvc push || true\n"
+    cmd: "poetry run python src/model/export_mlflow_models.py\npoetry run python src/model/upload_model_json_to_mongo.py\n\
+      \ git commit -am \"📦 Exported and synced ML model data on $(date)\" || true\n\
+      \ git push || true\ndvc push || true\n"
     deps:
     - path: src/model/export_mlflow_models.py
       hash: md5
