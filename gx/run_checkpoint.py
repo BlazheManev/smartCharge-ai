@@ -1,5 +1,6 @@
 import os
 import sys
+import re
 import great_expectations as gx
 
 context = gx.get_context()
@@ -24,16 +25,16 @@ for csv_file in csv_files:
 
     try:
         datasource = context.get_datasource(datasource_name)
+
         try:
             asset = datasource.get_asset(asset_name)
         except (gx.exceptions.DataContextError, LookupError):
             print(f"➕ Registering new asset: {asset_name}")
             asset = datasource.add_csv_asset(
                 name=asset_name,
-                batching_regex=rf"{station_id}\.csv"
+                batching_regex=re.escape(station_id) + r"\.csv"
             )
 
-        # Build batch request
         batch_request = asset.build_batch_request()
 
         # Check if expectation suite exists
@@ -42,11 +43,21 @@ for csv_file in csv_files:
             print(f"🧠 Creating new expectation suite for: {station_id}")
             suite = context.add_expectation_suite(suite_name)
 
-            # ⬅️ THIS is how you get the validator (NOT asset.get_validator())
             validator = context.get_validator(
                 batch_request=batch_request,
                 expectation_suite_name=suite_name
             )
+
+            # ✅ ADD THESE CHECKS:
+            print(f"🔎 Columns in batch: {validator.columns}")
+            if not validator.columns:
+                print(f"⚠️ Skipping {station_id}: No columns found in the data.")
+                continue
+
+            row_count = validator.head(n_rows=1).shape[0]
+            if row_count == 0:
+                print(f"⚠️ Skipping {station_id}: No rows found in the data.")
+                continue
 
             # Add expectations
             validator.expect_column_to_exist("timestamp")
@@ -65,10 +76,10 @@ for csv_file in csv_files:
             validator.expect_column_values_to_be_between("occupied", 0, 100)
             validator.expect_column_values_to_be_between("unknown", 0, 100)
 
-            # Save suite
             validator.save_expectation_suite(discard_failed_expectations=False)
+            print(f"📋 Suite saved with {len(validator.get_expectation_suite().expectations)} expectations.")
 
-        # Create checkpoint if needed
+        # Run or create checkpoint
         try:
             checkpoint = context.get_checkpoint(checkpoint_name)
         except gx.exceptions.CheckpointNotFoundError:
@@ -81,7 +92,6 @@ for csv_file in csv_files:
                 }]
             )
 
-        # Run the checkpoint
         result = checkpoint.run(run_id=f"{station_id}_run")
         if result["success"]:
             print(f"✅ PASSED: {station_id}")
@@ -93,6 +103,7 @@ for csv_file in csv_files:
         print(f"❌ ERROR with {station_id}: {e}")
         all_passed = False
 
+# Rebuild docs
 context.build_data_docs()
 
 if all_passed:
