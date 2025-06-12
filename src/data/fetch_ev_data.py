@@ -3,11 +3,16 @@ import json
 import requests
 from datetime import datetime
 from time import sleep
+from pymongo import MongoClient
 
 
 API_KEY = os.getenv("TOMTOM_API_KEY")
+MONGO_URI = "mongodb+srv://blazhe:Feri123feri@cluster0.j4co85k.mongodb.net/EV-AI?retryWrites=true&w=majority"
+
 if not API_KEY:
     raise ValueError("Missing TOMTOM_API_KEY environment variable")
+if not MONGO_URI:
+    raise ValueError("Missing MONGO_URI environment variable")
 
 OUTPUT_FILE = "data/raw/ev/ljubljana_ev_availability_combined.json"
 
@@ -42,7 +47,6 @@ def fetch_ljubljana_ev_stations():
         print(f"❌ Error fetching data: {e}")
         return
 
-    # Filter unique stations by ID
     unique_stations = {}
     for station in raw_results:
         station_id = station.get("id")
@@ -51,7 +55,6 @@ def fetch_ljubljana_ev_stations():
 
     print(f"🧹 Deduplicated to {len(unique_stations)} unique stations")
 
-    # Process each station
     processed = []
     count = 1
     for station in unique_stations.values():
@@ -63,7 +66,6 @@ def fetch_ljubljana_ev_stations():
         if not availability_id or not station_id:
             continue
 
-        # Fetch availability data
         availability_url = (
             f"https://api.tomtom.com/search/2/chargingAvailability.json"
             f"?key={API_KEY}&chargingAvailability={availability_id}"
@@ -101,6 +103,17 @@ def fetch_ljubljana_ev_stations():
         json.dump({"results": processed}, f, indent=2)
 
     print(f"\n💾 Saved {len(processed)} stations to {OUTPUT_FILE}")
+
+    try:
+        client = MongoClient(MONGO_URI)
+        db = client.get_default_database()
+        collection = db["ev_station_availability"]
+
+        collection.delete_many({})
+        collection.insert_many(processed)
+        print(f"🚀 Uploaded {len(processed)} stations to MongoDB.")
+    except Exception as e:
+        print(f"❌ MongoDB upload failed: {e}")
 
 if __name__ == "__main__":
     fetch_ljubljana_ev_stations()
