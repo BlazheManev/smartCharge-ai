@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 
 
 # Connect to MongoDB (will work with GH Actions secrets too)
-client = pymongo.MongoClient(os.getenv("MONGO_URI"))
+client = pymongo.MongoClient("mongodb+srv://blazhe:Feri123feri@cluster0.j4co85k.mongodb.net/EV-AI?retryWrites=true&w=majority")
 db = client.get_default_database()
 collection = db.reports
 
