@@ -78,7 +78,3 @@ stages:
 
   upload_reports:
     cmd: bash scripts/upload_reports.sh
-    deps:
-      - reports/ev_drift/
-      - gx/uncommitted/data_docs/local_site/expectations/
-      - scripts/upload_reports.sh
