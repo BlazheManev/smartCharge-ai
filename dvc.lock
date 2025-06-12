@@ -149,19 +149,19 @@ stages:
       size: 1470
   export_and_deploy_ml_json:
     cmd: "poetry run python src/model/export_mlflow_models.py\npoetry run python src/model/upload_model_json_to_mongo.py\n\
-      \ git commit -am \"📦 Exported and synced ML model data on $(date)\" || true\n\
-      \ git push || true\ndvc push || true\n"
+      git commit -am \"📦 Exported and synced ML model data on $(date)\" || true\n\
+      git push || true\ndvc push || true\n"
     deps:
     - path: src/model/export_mlflow_models.py
       hash: md5
-      md5: 77a8d7e94719d976ec7533dd613924fb
-      size: 833
+      md5: cfed91ccd78dffe78f3a8dd382b3ecc8
+      size: 806
     - path: src/model/upload_model_json_to_mongo.py
       hash: md5
-      md5: 4ef19508b753588b34af88fbd3bc29b2
-      size: 802
+      md5: 76bf24e32d2d452e93ed8068a37e5746
+      size: 772
     outs:
     - path: public/ml_models.json
       hash: md5
-      md5: d41d8cd98f00b204e9800998ecf8427e
-      size: 0
+      md5: b73115a606a5d5dac9dd581fbfa70d21
+      size: 585307
