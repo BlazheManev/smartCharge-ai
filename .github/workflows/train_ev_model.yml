@@ -55,7 +55,7 @@ jobs:
           TOMTOM_API_KEY: ${{ secrets.TOMTOM_API_KEY }}
           GITHUB_PAT: ${{ secrets.PAT_TOKEN }}
         run: |
-          dvc repro --force
+          dvc repro train_ev export_and_deploy_frontend
           dvc push
           git add .
           git commit -m "🤖 Full model training run on $(date)" || true

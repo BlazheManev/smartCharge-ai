@@ -54,7 +54,7 @@ jobs:
         env:
           TOMTOM_API_KEY: ${{ secrets.TOMTOM_API_KEY }}
         run: |
-          dvc repro fetch_ev preprocess_ev validate_ev_data test_ev_data
+          dvc repro fetch_ev preprocess_ev validate_ev_data test_ev_data upload_reports
           dvc push
           git add .
           git commit -m "🧹 Auto-update EV data pipeline on $(date)" || true
