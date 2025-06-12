@@ -1,17 +1,17 @@
-name: ⚡ Fast EV Data Pipeline (Every 30 min)
+name: 🤖 Full EV Model Training (Every 6 Hours from 09:00 UTC)
 
 on:
   schedule:
-    - cron: '*/30 * * * *'  # every 30 minutes
+    - cron: '0 9,15,21,3 * * *'  # 🕘 09:00, 15:00, 21:00, 03:00 UTC daily
   workflow_dispatch:
 
 jobs:
-  fetch_and_preprocess:
-    name: Fetch and preprocess EV data
+  train_model_and_export:
+    name: Train model and deploy metadata
     runs-on: ubuntu-latest
 
     environment:
-      name: master-push-lock  # 🚧 lock to avoid push conflicts
+      name: master-push-lock  # 🔒 avoid conflict with other workflows
 
     steps:
       - name: Checkout repository
@@ -50,13 +50,14 @@ jobs:
           dvc pull --force
           dvc status
 
-      - name: Run fast DVC stages
+      - name: Run full DVC pipeline (training + export)
         env:
           TOMTOM_API_KEY: ${{ secrets.TOMTOM_API_KEY }}
+          GITHUB_PAT: ${{ secrets.PAT_TOKEN }}
         run: |
-          dvc repro fetch_ev preprocess_ev validate_ev_data test_ev_data
+          dvc repro --force
           dvc push
           git add .
-          git commit -m "🧹 Auto-update EV data pipeline on $(date)" || true
+          git commit -m "🤖 Full model training run on $(date)" || true
           git pull --rebase
           git push || echo "Skipped push due to conflict"
