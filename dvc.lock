@@ -7,8 +7,8 @@ stages:
     deps:
     - path: src/data/fetch_ev_data.py
       hash: md5
-      md5: 3a287f6b63984144808a0ac9b31ee262
-      size: 3773
+      md5: 69191c6de2086b58cf28998c5798073a
+      size: 3892
     outs:
     - path: data/raw/ev/ljubljana_ev_availability_combined.json
       hash: md5
@@ -25,8 +25,8 @@ stages:
       size: 36849
     - path: src/data/preprocess_ev_data.py
       hash: md5
-      md5: fca402c49896198f1697bcd463994594
-      size: 2678
+      md5: 4bbdbd31b80927dccac3fb1dca85a76c
+      size: 2755
     outs:
     - path: data/preprocessed/ev
       hash: md5
@@ -43,12 +43,12 @@ stages:
       nfiles: 41
     - path: gx/great_expectations.yml
       hash: md5
-      md5: a16393d260c28ffd4c893a0df7b30eb3
-      size: 8902
+      md5: 3c20c2f0ad8b37cdc9c4666dcdedd02b
+      size: 9136
     - path: gx/run_checkpoint.py
       hash: md5
-      md5: 983e4a7b0973f54707633629ab08f0a2
-      size: 4225
+      md5: 0c0f3b6fcad529b5e025be84b6b01fc4
+      size: 4339
     outs:
     - path: gx/uncommitted
       hash: md5
@@ -65,8 +65,8 @@ stages:
       nfiles: 41
     - path: src/data/test_ev_data.py
       hash: md5
-      md5: bc384044bb131beb80d21f51db9ea27c
-      size: 2593
+      md5: 9ce83619ab008d568b81aa26f7680cd6
+      size: 2678
     outs:
     - path: reports/ev_drift
       hash: md5
@@ -79,30 +79,30 @@ stages:
     deps:
     - path: data/preprocessed/ev
       hash: md5
-      md5: b66a126f9a19b097347e519948d83961.dir
-      size: 327965
+      md5: 656c75f2d5486f31c41aedfedad12c6e.dir
+      size: 372365
       nfiles: 41
     - path: gx/uncommitted
       hash: md5
-      md5: aa34f09df8d71829afb385b116514e56.dir
-      size: 93196213
-      nfiles: 4329
+      md5: 16900b25104afd43f5d0f91a347ea43d.dir
+      size: 108857054
+      nfiles: 4985
     - path: reports/ev_drift
       hash: md5
-      md5: 0023368790df9d58be36c68d99580458.dir
-      size: 157501856
+      md5: c811efebe9ada27c00781b706ce0b056.dir
+      size: 157564806
       nfiles: 41
     - path: src/model/preprocess.py
       hash: md5
-      md5: b9da9b572d006dbd072da6c4799897f6
-      size: 1711
+      md5: 3cfc826696bacf4a9e5590f3efbf8fce
+      size: 1768
     - path: src/model/train_ev.py
       hash: md5
-      md5: 624a5f46759d234c5789b17da55366b4
-      size: 5244
+      md5: 10e40ead993099556b66fbc7dc90dc23
+      size: 5406
     params:
       params.yaml:
-        train_ev.freq: 1h
+        train_ev.freq: 30m
         train_ev.random_state: 42
         train_ev.target: occupied
         train_ev.test_size: 4
@@ -145,5 +145,23 @@ stages:
       nfiles: 41
     - path: src/data/upload_html_to_mongo.py
       hash: md5
-      md5: 8d97598f09025695e6092df6f76e9c1a
-      size: 1470
+      md5: a9a10749a1aa4e44c93b98848b28582c
+      size: 1519
+  export_and_deploy_ml_json:
+    cmd: "poetry run python src/model/export_mlflow_models.py\npoetry run python src/model/upload_model_json_to_mongo.py\n
+      git commit -am \"📦 Exported and synced ML model data on $(date)\" || true\n
+      git push || true\ndvc push || true\n"
+    deps:
+    - path: src/model/export_mlflow_models.py
+      hash: md5
+      md5: 77a8d7e94719d976ec7533dd613924fb
+      size: 833
+    - path: src/model/upload_model_json_to_mongo.py
+      hash: md5
+      md5: 4ef19508b753588b34af88fbd3bc29b2
+      size: 802
+    outs:
+    - path: public/ml_models.json
+      hash: md5
+      md5: d41d8cd98f00b204e9800998ecf8427e
+      size: 0
