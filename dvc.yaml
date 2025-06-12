@@ -76,10 +76,9 @@ stages:
       - public/ml_models.json
     always_changed: true
 
-    upload_reports:
-      cmd: bash scripts/upload_reports.sh
-      deps:
-        - reports/ev_drift/
-        - gx/uncommitted/data_docs/local_site/expectations/index.html
-        - scripts/upload_reports.sh
-
+  upload_reports:
+    cmd: bash scripts/upload_reports.sh
+    deps:
+      - reports/ev_drift/
+      - gx/uncommitted/data_docs/local_site/expectations/index.html
+      - scripts/upload_reports.sh
