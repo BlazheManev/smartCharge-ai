@@ -4,7 +4,7 @@ from pymongo import MongoClient
 
 # Config
 MONGO_URI = "mongodb+srv://blazhe:Feri123feri@cluster0.j4co85k.mongodb.net/EV-AI?retryWrites=true&w=majority"
-DB_NAME = "ev_ai"
+DB_NAME = "EV_AI"
 COLLECTION_NAME = "ml_models"
 JSON_PATH = "public/ml_models.json"
 
