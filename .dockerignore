@@ -6,3 +6,7 @@ venv
 node_modules
 uploads
 public/ml_models.json
+data/
+models/
+__pycache__/
+gx/uncommitted/
