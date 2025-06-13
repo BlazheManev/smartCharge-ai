@@ -1,0 +1,8 @@
+.git
+.dvc/cache
+__pycache__
+*.pyc
+venv
+node_modules
+uploads
+public/ml_models.json
