@@ -1,30 +1,30 @@
 import json
-import os
 from pymongo import MongoClient
 
-# Config
+# ✅ Config
 MONGO_URI = "mongodb+srv://blazhe:Feri123feri@cluster0.j4co85k.mongodb.net/EV-AI?retryWrites=true&w=majority"
-DB_NAME = "EV_AI"
 COLLECTION_NAME = "ml_models"
 JSON_PATH = "public/ml_models.json"
 
 def main():
     print("📦 Uploading ML model JSON to MongoDB...")
 
-    # Read JSON file
+    # ✅ Load JSON data
     with open(JSON_PATH, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    # Connect to MongoDB
+    # ✅ Connect using the URI default DB
     client = MongoClient(MONGO_URI)
-    db = client[DB_NAME]
+    db = client.get_default_database()
     collection = db[COLLECTION_NAME]
 
-    # Drop old and insert new
-    collection.drop()
-    result = collection.insert_many(data)
+    # 🧹 Clear old data
+    deleted = collection.delete_many({})
+    print(f"🗑️ Deleted {deleted.deleted_count} existing records.")
 
-    print(f"✅ Inserted {len(result.inserted_ids)} model records into MongoDB.")
+    # ⬆️ Insert new model metadata
+    result = collection.insert_many(data)
+    print(f"✅ Inserted {len(result.inserted_ids)} new model records.")
 
 if __name__ == "__main__":
     main()
