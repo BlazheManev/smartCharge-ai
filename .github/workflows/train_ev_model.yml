@@ -50,6 +50,19 @@ jobs:
           dvc pull --force
           dvc status
 
+      - name: Run only train_ev and export_and_deploy_ml_json
+        env:
+          TOMTOM_API_KEY: ${{ secrets.TOMTOM_API_KEY }}
+          GITHUB_PAT: ${{ secrets.PAT_TOKEN }}
+        run: |
+          dvc repro --single-item train_ev
+          dvc repro --single-item export_and_deploy_ml_json
+          dvc push
+          git add .
+          git commit -m "🤖 Full model training run on $(date)" || true
+          git pull --rebase
+          git push || echo "Skipped push due to conflict"
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
