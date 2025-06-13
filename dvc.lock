@@ -158,10 +158,10 @@ stages:
       size: 806
     - path: src/model/upload_model_json_to_mongo.py
       hash: md5
-      md5: 76bf24e32d2d452e93ed8068a37e5746
-      size: 772
+      md5: 526669c3f21fb4a69285b701f4d2afb7
+      size: 901
     outs:
     - path: public/ml_models.json
       hash: md5
-      md5: 172e4398f37d0da4ba02fa757d6ec1da
-      size: 609014
+      md5: ed228317d72235dc48a62b41c1ed522d
+      size: 618479
