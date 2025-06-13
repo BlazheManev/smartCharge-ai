@@ -159,11 +159,6 @@ poetry run dvc repro
 ## 👨‍💻 Author
 
 Blazhe Manev
-Faculty of Computer and Information Science, UL
-MAG 1. IPT
 
 ---
 
-## 📄 License
-
-This project is academic. For educational use only.
