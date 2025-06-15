@@ -35,7 +35,6 @@ random.seed(random_state)
 np.random.seed(random_state)
 tf.random.set_seed(random_state)
 
-# Setup MLflow
 if os.getenv("CI"):
     mlflow.set_tracking_uri("https://dagshub.com/BlazheManev/smartcharge-ai.mlflow")
     os.environ["MLFLOW_TRACKING_USERNAME"] = 'BlazheManev'
