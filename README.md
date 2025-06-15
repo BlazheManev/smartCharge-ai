@@ -1,4 +1,4 @@
-# 🔗 SmartCharge ML & DVC Pipeline
+# 🔗 SmartCharge ML & DVC Pipeline & LSTM 
 
 This directory contains the full machine learning pipeline for SmartCharge AI. The pipeline includes automatic data fetching, preprocessing, validation, drift testing, model training, export, and deployment — all managed via DVC and automated with GitHub Actions.
 
@@ -9,6 +9,7 @@ This directory contains the full machine learning pipeline for SmartCharge AI. T
 * ✈️ Automated data ingestion every 30 minutes
 * 📊 Data validation using Great Expectations
 * 🧠 Model training & evaluation with MLflow tracking
+* 🧪 Trains 40+ models using LSTM (1 per EV station)
 * 📲 Metadata export to MongoDB
 * 🌐 HTML report uploads (drift, expectations)
 * ✨ Two GitHub Actions workflows for scheduling pipelines
@@ -23,6 +24,7 @@ This directory contains the full machine learning pipeline for SmartCharge AI. T
 * **Great Expectations** for data validation
 * **MongoDB** as metadata store
 * **GitHub Actions** for automation
+* 🧠 **LSTM** models used for time series prediction
 
 ---
 
@@ -34,7 +36,7 @@ stages:
   preprocess_ev:        # Clean and structure data
   validate_ev_data:     # Run Great Expectations validation
   test_ev_data:         # Drift detection report generation
-  train_ev:             # Train model for all stations
+  train_ev:             # Train 40+ LSTM models (one per station)
   export_and_deploy_ml_json: # Export model metadata and upload to MongoDB
   upload_reports:       # Upload drift/validation HTML to MongoDB
 ```
@@ -83,7 +85,6 @@ Runs every **6 hours (09:00, 15:00, 21:00, 03:00 UTC)**:
 
 ```yaml
 dvc repro --single-item train_ev
-
 dvc repro --single-item export_and_deploy_ml_json
 ```
 
@@ -123,7 +124,6 @@ To run the pipeline successfully, ensure:
 
 ```bash
 dvc remote modify origin --local access_key_id YOUR_KEY
-
 dvc remote modify origin --local secret_access_key YOUR_SECRET
 ```
 
@@ -161,4 +161,3 @@ poetry run dvc repro
 Blazhe Manev
 
 ---
-
