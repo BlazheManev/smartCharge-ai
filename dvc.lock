@@ -163,5 +163,5 @@ stages:
     outs:
     - path: public/ml_models.json
       hash: md5
-      md5: 2ab07c19b04382ca6fa581d544a721f8
-      size: 769366
+      md5: 775638622aecce2ee504f5a576874fe7
+      size: 777323
