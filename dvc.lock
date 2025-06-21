@@ -21,7 +21,7 @@ stages:
     deps:
     - path: data/raw/ev/ljubljana_ev_availability_combined.json
       hash: md5
-      md5: 3214a1751b0b6c9520e0c3a1de6b3b30
+      md5: ea852613fcc1142496e6a2046a138471
       size: 37734
     - path: src/data/preprocess_ev_data.py
       hash: md5
@@ -30,16 +30,16 @@ stages:
     outs:
     - path: data/preprocessed/ev
       hash: md5
-      md5: 5b27a6ccd38123a88cdc90a3ff8487ea.dir
-      size: 1593514
+      md5: f4b21f86448fdeb92a14aa2c98503627.dir
+      size: 1599203
       nfiles: 41
   validate_ev_data:
     cmd: "cd gx && poetry run python run_checkpoint.py\n"
     deps:
     - path: data/preprocessed/ev/
       hash: md5
-      md5: 5b27a6ccd38123a88cdc90a3ff8487ea.dir
-      size: 1593514
+      md5: f4b21f86448fdeb92a14aa2c98503627.dir
+      size: 1599203
       nfiles: 41
     - path: gx/great_expectations.yml
       hash: md5
@@ -52,16 +52,16 @@ stages:
     outs:
     - path: gx/uncommitted
       hash: md5
-      md5: 5f6f779b28d9638daf65a50a1e63d6c8.dir
-      size: 840515284
-      nfiles: 22943
+      md5: 7176bc7c5f2255ab79cd2a76fb051033.dir
+      size: 843856271
+      nfiles: 23025
   test_ev_data:
     cmd: "poetry run python src/data/test_ev_data.py\n"
     deps:
     - path: data/preprocessed/ev
       hash: md5
-      md5: 5b27a6ccd38123a88cdc90a3ff8487ea.dir
-      size: 1593514
+      md5: f4b21f86448fdeb92a14aa2c98503627.dir
+      size: 1599203
       nfiles: 41
     - path: src/data/test_ev_data.py
       hash: md5
@@ -70,8 +70,8 @@ stages:
     outs:
     - path: reports/ev_drift
       hash: md5
-      md5: c4d2883e675560f36a42cdceb6051cd2.dir
-      size: 158487229
+      md5: bbf6fd1b78dcae34a233272c440ee7c9.dir
+      size: 158491013
       nfiles: 41
   train_ev:
     cmd: "poetry run python src/model/train_ev.py\ngit commit -am \"🤖 Trained EV model
@@ -135,13 +135,13 @@ stages:
     deps:
     - path: gx/uncommitted/data_docs/local_site/expectations/
       hash: md5
-      md5: 380bc14c3d5175d3b51b337c396ce1ad.dir
+      md5: 3542d4b1c7999c31f2aa6c62cc6f8101.dir
       size: 1840412
       nfiles: 42
     - path: reports/ev_drift/
       hash: md5
-      md5: c4d2883e675560f36a42cdceb6051cd2.dir
-      size: 158487229
+      md5: bbf6fd1b78dcae34a233272c440ee7c9.dir
+      size: 158491013
       nfiles: 41
     - path: src/data/upload_html_to_mongo.py
       hash: md5
