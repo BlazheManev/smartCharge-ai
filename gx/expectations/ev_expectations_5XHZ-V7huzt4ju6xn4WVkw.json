@@ -61,13 +61,13 @@
       "kwargs": {
         "column": "type",
         "value_set": [
-          "Other",
           "IEC62196Type2CCS",
-          "IEC62196Type2CableAttached",
-          "TeslaSupercharger",
           "CHAdeMO",
+          "Other",
+          "TeslaSupercharger",
           "IEC62196Type1",
-          "IEC62196Type2Outlet"
+          "IEC62196Type2Outlet",
+          "IEC62196Type2CableAttached"
         ]
       },
       "meta": {}
