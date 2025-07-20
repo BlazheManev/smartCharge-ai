@@ -107,7 +107,7 @@ if failed_stations:
     for sid in failed_stations:
         print(f" - {sid}")
 else:
-    print("\n✅ All EV station validations passed!")
+        print("\n✅ All EV station validations passed!")
 
 # Always exit cleanly
 print("\n🚀 Validation run complete. Results saved to Data Docs.")
