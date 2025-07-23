@@ -12,7 +12,7 @@ stages:
     outs:
     - path: data/raw/ev/ljubljana_ev_availability_combined.json
       hash: md5
-      md5: 8098cd6f4d0c6559ede22e5fb4de5a00
+      md5: 3f11a0098783c2b42cb8637ec6c37c3f
       size: 34432
   preprocess_ev:
     cmd: "poetry run python src/data/preprocess_ev_data.py\ngit commit -am \"🧹 Preprocessed
