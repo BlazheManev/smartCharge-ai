@@ -12,8 +12,8 @@ stages:
     outs:
     - path: data/raw/ev/ljubljana_ev_availability_combined.json
       hash: md5
-      md5: 09f37f68093d71f1fab372803b10eaef
-      size: 34432
+      md5: 9d5a0a3ecc66f7162435fcbbcd0666f1
+      size: 36200
   preprocess_ev:
     cmd: "poetry run python src/data/preprocess_ev_data.py\ngit commit -am \"🧹 Preprocessed
       EV data on $(date) with DVC pipeline\" || true\ngit push || true\ndvc push ||
