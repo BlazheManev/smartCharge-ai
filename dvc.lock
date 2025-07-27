@@ -98,8 +98,8 @@ stages:
       size: 1711
     - path: src/model/train_ev.py
       hash: md5
-      md5: 5c03c31f22f1a5808472148a98bfc92f
-      size: 5229
+      md5: cb775779c2fd7684231898d41eb522fc
+      size: 5298
     params:
       params.yaml:
         train_ev.freq: 30m
