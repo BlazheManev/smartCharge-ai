@@ -2,7 +2,7 @@ name: ⚡ Fast EV Data Pipeline (Every 30 min)
 
 on:
   schedule:
-    - cron: '*/30 * * * *'  # every 30 minutes
+    - cron: '0 * * * *'  # every hour
   workflow_dispatch:
 
 jobs:
