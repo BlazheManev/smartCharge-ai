@@ -6,7 +6,7 @@ from time import sleep
 from pymongo import MongoClient
 
 
-API_KEY = os.getenv("TOMTOM_API_KEY")
+API_KEY = "MGhthFNeQIv644euJYokp02evFVDrDM9"
 MONGO_URI = "mongodb+srv://blazhe:Feri123feri@cluster0.j4co85k.mongodb.net/EV-AI?retryWrites=true&w=majority"
 
 if not API_KEY:
