@@ -50,8 +50,16 @@ class SlidingWindowTransformer(BaseEstimator, TransformerMixin):
 
     @staticmethod
     def create_sliding_windows(data, window_size):
+        if isinstance(data, pd.DataFrame):
+            values = data.values
+        elif isinstance(data, np.ndarray):
+            values = data
+        else:
+            raise TypeError("Expected input to be pd.DataFrame or np.ndarray")
+
         X, y = [], []
-        for i in range(len(data) - window_size):
-            X.append(data[i:i + window_size])
-            y.append(data[i + window_size])
+        for i in range(len(values) - window_size):
+            X.append(values[i:i + window_size])
+            y.append(values[i + window_size])
+
         return np.array(X), np.array(y)
