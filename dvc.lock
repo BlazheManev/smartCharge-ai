@@ -94,15 +94,15 @@ stages:
       nfiles: 41
     - path: src/model/preprocess.py
       hash: md5
-      md5: b9da9b572d006dbd072da6c4799897f6
-      size: 1711
+      md5: 5501e973a63e9e3a371aff2a7518d848
+      size: 1957
     - path: src/model/train_ev.py
       hash: md5
       md5: cb775779c2fd7684231898d41eb522fc
       size: 5298
     params:
       params.yaml:
-        train_ev.freq: 30m
+        train_ev.freq: 1h
         train_ev.random_state: 42
         train_ev.target: occupied
         train_ev.test_size: 4
