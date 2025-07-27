@@ -1,4 +1,4 @@
-name: ⚡ Fast EV Data Pipeline (Every 30 min)
+name: ⚡ Fast EV Data Pipeline (Every 1 hour)
 
 on:
   schedule:
