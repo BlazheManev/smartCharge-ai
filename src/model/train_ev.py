@@ -96,7 +96,8 @@ for i, filename in enumerate(csv_files, start=1):
     ])
 
     try:
-        X_train, y_train = pipeline.fit_transform(df_train)
+        pipeline.fit(df_train)
+        X_train, y_train = pipeline.transform(df_train)
         X_test, y_test = pipeline.transform(df_test)
     except Exception as e:
         print(f"❌ Pipeline error for {station}: {e}")
@@ -154,6 +155,7 @@ for i, filename in enumerate(csv_files, start=1):
                 f.write(onnx_model.SerializeToString())
             mlflow.log_artifact(onnx_path)
 
+        # ✅ Save pipeline after fitting
         pipe_path = f"{model_dir}/pipeline_ev_{station}.pkl"
         joblib.dump(pipeline, pipe_path)
         mlflow.log_artifact(pipe_path)
