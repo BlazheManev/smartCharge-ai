@@ -17,7 +17,7 @@ name = "alembic"
 version = "1.16.1"
 description = "A database migration tool for SQLAlchemy."
 optional = false
-python-versions = ">=3.9"
+python-versions = "3.10.5"
 groups = ["main"]
 files = [
     {file = "alembic-1.16.1-py3-none-any.whl", hash = "sha256:0cdd48acada30d93aa1035767d67dff25702f8de74d7c3919f2e8492c8db2e67"},
