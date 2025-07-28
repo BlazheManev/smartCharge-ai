@@ -17,6 +17,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error, mean_absolute_error
+from sklearn.base import TransformerMixin
 
 from preprocess import DatePreprocessor, SlidingWindowTransformer
 
@@ -35,6 +36,7 @@ random.seed(random_state)
 np.random.seed(random_state)
 tf.random.set_seed(random_state)
 
+# MLflow init
 if os.getenv("CI"):
     mlflow.set_tracking_uri("https://dagshub.com/BlazheManev/smartcharge-ai.mlflow")
     os.environ["MLFLOW_TRACKING_USERNAME"] = 'BlazheManev'
@@ -50,6 +52,7 @@ data_dir = "data/preprocessed/ev"
 csv_files = [f for f in os.listdir(data_dir) if f.endswith(".csv")]
 total_files = len(csv_files)
 
+# LSTM model builder
 def build_model(shape):
     inputs = Input(shape=shape, name="input")
     x = LSTM(50, return_sequences=True)(inputs)
@@ -61,6 +64,14 @@ def build_model(shape):
     model.compile(optimizer="adam", loss="mean_squared_error")
     return model
 
+# 💡 Fix: Wrapper to convert numpy array → DataFrame
+class ArrayToDataFrame(TransformerMixin):
+    def fit(self, X, y=None):
+        return self
+    def transform(self, X):
+        return pd.DataFrame(X)
+
+# Loop over stations
 for i, filename in enumerate(csv_files, start=1):
     station = filename.replace(".csv", "")
     print(f"\n🚗 Training model for EV station: {station} ({i}/{total_files})")
@@ -92,6 +103,7 @@ for i, filename in enumerate(csv_files, start=1):
 
     pipeline = Pipeline([
         ("prep", preprocess),
+        ("to_df", ArrayToDataFrame()),  # ✅ FIX: wrap numpy -> DataFrame
         ("window", SlidingWindowTransformer(window_size))
     ])
 
@@ -155,7 +167,6 @@ for i, filename in enumerate(csv_files, start=1):
                 f.write(onnx_model.SerializeToString())
             mlflow.log_artifact(onnx_path)
 
-        # ✅ Save pipeline after fitting
         pipe_path = f"{model_dir}/pipeline_ev_{station}.pkl"
         joblib.dump(pipeline, pipe_path)
         mlflow.log_artifact(pipe_path)
