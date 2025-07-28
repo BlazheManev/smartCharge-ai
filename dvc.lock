@@ -98,8 +98,8 @@ stages:
       size: 1957
     - path: src/model/train_ev.py
       hash: md5
-      md5: cb775779c2fd7684231898d41eb522fc
-      size: 5298
+      md5: c1684cfd57b4cc677eed68b3496a94aa
+      size: 5638
     params:
       params.yaml:
         train_ev.freq: 1h
@@ -110,8 +110,8 @@ stages:
     outs:
     - path: models/
       hash: md5
-      md5: 8f0651fac112c57e57ad55fc83d47078.dir
-      size: 22544290
+      md5: ae07f6af7c3def223d155069b535962d.dir
+      size: 22546135
       nfiles: 164
   export_and_deploy_frontend:
     cmd: scripts/export_frontend.sh
