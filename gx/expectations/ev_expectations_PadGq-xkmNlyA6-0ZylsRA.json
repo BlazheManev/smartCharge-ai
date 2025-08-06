@@ -62,12 +62,12 @@
         "column": "type",
         "value_set": [
           "IEC62196Type1",
-          "IEC62196Type2Outlet",
-          "Other",
-          "IEC62196Type2CCS",
           "TeslaSupercharger",
+          "Other",
           "CHAdeMO",
-          "IEC62196Type2CableAttached"
+          "IEC62196Type2Outlet",
+          "IEC62196Type2CableAttached",
+          "IEC62196Type2CCS"
         ]
       },
       "meta": {}
