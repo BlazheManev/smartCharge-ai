@@ -5,11 +5,6 @@ on:
     - cron: '0 * * * *'
   workflow_dispatch:
 
-# Ensure only one run per branch hits the remote at a time (queues, doesn't cancel)
-concurrency:
-  group: fast-ev-data-pipeline-${{ github.ref }}
-  cancel-in-progress: false
-
 jobs:
   fetch_and_preprocess:
     name: Fetch and preprocess EV data
