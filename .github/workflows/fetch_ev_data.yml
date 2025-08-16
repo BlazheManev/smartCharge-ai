@@ -2,26 +2,13 @@ name: ⚡ Fast EV Data Pipeline (Every 1 hour)
 
 on:
   schedule:
-    - cron: '0 * * * *'
+    - cron: '0 * * * *'  # every hour
   workflow_dispatch:
-
-# Ensure only one run per branch hits the remote at a time (queues, doesn't cancel)
-concurrency:
-  group: fast-ev-data-pipeline-${{ github.ref }}
-  cancel-in-progress: false
 
 jobs:
   fetch_and_preprocess:
     name: Fetch and preprocess EV data
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-
-    # Helpful env for S3/Dagshub and DVC in CI
-    env:
-      AWS_RETRY_MODE: adaptive
-      AWS_MAX_ATTEMPTS: '12'
-      AWS_EC2_METADATA_DISABLED: 'true'
-      DVC_NO_ANALYTICS: '1'
 
     environment:
       name: master-push-lock
@@ -33,17 +20,17 @@ jobs:
           token: ${{ secrets.PAT_TOKEN }}
           fetch-depth: 0
 
+      - name: Install Poetry
+        run: pipx install poetry
+
+      - name: Install DVC
+        run: pip install dvc[s3]
+
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.10.5"
           cache: poetry
-
-      - name: Install Poetry
-        run: pipx install poetry
-
-      - name: Install DVC (S3)
-        run: pip install "dvc[s3]"
 
       - name: Setup Git
         run: |
@@ -53,28 +40,14 @@ jobs:
       - name: Install dependencies
         run: poetry install --no-interaction --no-root
 
-      - name: DVC setup remote (Dagshub S3 creds)
+      - name: DVC setup remote
         run: |
           dvc remote modify origin --local access_key_id ${{ secrets.DAGSHUB_ACCESS_KEY_ID }}
           dvc remote modify origin --local secret_access_key ${{ secrets.DAGSHUB_SECRET_ACCESS_KEY }}
 
-      # Pull with low concurrency + retries to avoid 429s
-      - name: DVC pull (throttle-friendly with backoff)
-        shell: bash
+      - name: DVC pull & status
         run: |
-          set -euo pipefail
-          # Try up to 4 times with exponential backoff
-          for i in 1 2 3 4; do
-            echo "Attempt $i: dvc pull -j 1"
-            if dvc pull -j 1; then
-              break
-            fi
-            if [[ $i -eq 4 ]]; then
-              echo "dvc pull failed after $i attempts"
-              exit 1
-            fi
-            sleep $(( 15 * i ))
-          done
+          dvc pull --force
           dvc status
 
       - name: Run fast DVC stages
@@ -82,9 +55,8 @@ jobs:
           TOMTOM_API_KEY: ${{ secrets.TOMTOM_API_KEY }}
           MONGO_URI: ${{ secrets.MONGO_URI }}
         run: |
-          # Keep DVC remote pressure low during repro/push as well
           dvc repro fetch_ev preprocess_ev validate_ev_data test_ev_data upload_reports
-          dvc push -j 1
+          dvc push
           git add .
           git commit -m "🧹 Auto-update EV data pipeline on $(date)" || true
           git pull --rebase
